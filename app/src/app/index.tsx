@@ -392,7 +392,7 @@ function FrameTopBar({
         {title}
       </Text>
 
-      <View style={styles.topBarIcon} />
+      <View style={styles.topBarSpacer} />
     </View>
   );
 }
@@ -523,6 +523,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  topBarSpacer: {
+    width: 30,
   },
   topBarTitle: {
     flex: 1,
