@@ -22,8 +22,8 @@ import { channelHistogram, THRESHOLD_METHODS } from './thresholds';
 export const VAHA_KONTRASTU = 0.3;
 
 export const PROFIL_RYCHLY: { channels: ColorChannel[]; methods: string[] } = {
-  channels: ['HSV_H', 'HSV_S', 'YCbCr_Cr', 'YCbCr_Cb', 'XYZ_X'],
-  methods: ['Otsu', 'Yen', 'Isodata'],
+  channels: ['HSV_S', 'Lab_a', 'XYZ_X', 'YUV_U'],
+  methods: ['Yen', 'Isodata', 'Minimum'],
 };
 
 export type BorderSide = 'top' | 'bottom' | 'left' | 'right';
