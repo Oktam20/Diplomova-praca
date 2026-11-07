@@ -98,13 +98,13 @@ def zvol_profily(kroky):
 def graf_vyhry(vitazi, cesta):
     fig, osi = plt.subplots(1, 2, figsize=(11, 5))
     
-    for ax, stlpec, poradie, nazov in ((osi[0], "kanal", VSETKY_KANALY, "kanál"),
-                                       (osi[1], "metoda", list(METODY), "metóda")):
+    for ax, stlpec, poradie, nazov in ((osi[0], "kanal", VSETKY_KANALY, "Víťazný kanál"),
+                                       (osi[1], "metoda", list(METODY), "Víťazná metóda")):
         pocty = vitazi[stlpec].value_counts().reindex(poradie, fill_value=0).sort_values()
         farby = ["#898781" if k in JASOVE_KANALY else "#256abf" for k in pocty.index]
         ax.barh(pocty.index, pocty.values, color=farby)
-        ax.set_xlabel("počet fotiek, kde vyhral")
-        ax.set_title(f"Víťazný {nazov}")
+        ax.set_xlabel("počet trénovacích fotiek, kde vyhral")
+        ax.set_title(nazov)
     
     fig.suptitle("Výhry pri všetkých 19 kanáloch × 7 metódach (sivé = jasové kanály)")
     fig.tight_layout()

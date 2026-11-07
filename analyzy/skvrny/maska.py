@@ -40,10 +40,10 @@ METODY = {
 }
 
 PROFILY = {
-    "rychly": (["HSV_H", "HSV_S", "YCbCr_Cr", "YCbCr_Cb", "XYZ_X"],
-               ["Otsu", "Yen", "Isodata"]),
-    "kvalitny": (["RGB_R", "HSV_H", "HSV_S", "YCbCr_Cr", "YCbCr_Cb", "XYZ_X", "YUV_V"],
-                 ["Otsu", "Triangle", "Yen", "Isodata"]),
+    "rychly": (["HSV_S", "Lab_a", "XYZ_X", "YUV_U"],
+               ["Yen", "Isodata", "Minimum"]),
+    "kvalitny": (["HSV_H", "HSV_S", "Lab_a", "XYZ_X", "YUV_U", "YUV_V"],
+                 ["Yen", "Li", "Isodata", "Minimum"]),
 }
 
 POKRYTIE = (0.02, 0.9)

@@ -14,7 +14,7 @@ vytvárajú skripty tohto repozitára, sú v `vysledky/`.
 | uložené masky | masky, z ktorých sa počítali črty pre určovací kľúč (= pôvodný algoritmus 12 × 7) |
 | základná metóda | Otsu na šedotónovom obrázku, škvrna tmavšia ako prah – najjednoduchší bežný prístup |
 | 12 × 7 + kontrast | pôvodný algoritmus s novým skóre |
-| profil Rýchly / Kvalitný | profily `rychly` / `kvalitny` z `maska.py` (s kontrastom) |
+| profil Rýchly / Kvalitný | pôvodné profily s kontrastom: HSV_H, HSV_S, YCbCr_Cr, YCbCr_Cb, XYZ_X × Otsu, Yen, Isodata (5 × 3) a RGB_R, HSV_H, HSV_S, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_V × Otsu, Triangle, Yen, Isodata (7 × 4) |
 
 Dice a IoU sú merané voči ručne obkresleným maskám. Interval spoľahlivosti je 95 % bootstrap,
 v ktorom sa prevzorkúvajú celé kartičky (fotky jednej kartičky nie sú nezávislé).
@@ -39,6 +39,10 @@ spoluvýhry: kanál dal presne tú istú masku ako víťaz. Počítané pôvodn�
 Najčastejšie vyhráva **YCbCr_Cb (36,8 %)**, ďalej YUV_V 15,3 %, YCbCr_Cr 15,1 %, YUV_U 11,6 % a
 Lab_b 7,0 %. Jasové kanály (L, Y, V, Gray) nevyhrávajú takmer nikdy. Škvrna sa od papiera líši
 hlavne **farbou, nie jasom**, a tieň alebo nerovnomerné svetlo mení jas, nie farbu.
+
+Graf platí pre **pôvodné skóre bez kontrastu**. So súčasným skóre (s kontrastom) vyhráva
+najčastejšie HSV_S – pozri `skvrny/vysledky/vyhry_kanalov_a_metod.png` zo skriptu
+`vyber_kanalov.py` (len trénovacie fotky).
 
 ### 03 – Postupné vylučovanie kanálov
 ![](03_vylucovanie_kanalov.png)

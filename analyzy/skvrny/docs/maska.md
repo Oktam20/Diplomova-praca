@@ -67,8 +67,7 @@ Výstup: binárna maska rovnakého rozmeru.
 
 | profil | kanály | metódy | kandidátov |
 |---|---|---|---|
-| `rychly` (predvolený, aplikácia) | HSV_H, HSV_S, YCbCr_Cr, YCbCr_Cb, XYZ_X | Otsu, Yen, Isodata | 30 |
-| `kvalitny` | RGB_R, HSV_H, HSV_S, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_V | Otsu, Triangle, Yen, Isodata | 56 |
+| `rychly` (predvolený, aplikácia) | HSV_S, Lab_a, XYZ_X, YUV_U | Yen, Isodata, Minimum | 24 |
+| `kvalitny` | HSV_H, HSV_S, Lab_a, XYZ_X, YUV_U, YUV_V | Yen, Li, Isodata, Minimum | 48 |
 
-Ako vznikli, popisuje [vyber_kanalov.md](vyber_kanalov.md). Na testovacích fotkách sú
-rovnako presné, rýchly je asi 1,6× rýchlejší.
+Ako vznikli, popisuje [vyber_kanalov.md](vyber_kanalov.md).
