@@ -1,0 +1,18 @@
+odobrate,kanalov,metod,dice,kanaly,metody
+,12,7,0.8528772759063578,"RGB_R, RGB_G, RGB_B, HSV_H, HSV_S, Lab_a, Lab_b, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Triangle, Yen, Li, Isodata, Mean, Minimum"
+Mean,12,6,0.8542761795391456,"RGB_R, RGB_G, RGB_B, HSV_H, HSV_S, Lab_a, Lab_b, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Triangle, Yen, Li, Isodata, Minimum"
+RGB_B,11,6,0.8556231140222016,"RGB_R, RGB_G, HSV_H, HSV_S, Lab_a, Lab_b, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Triangle, Yen, Li, Isodata, Minimum"
+Triangle,11,5,0.8566445716693316,"RGB_R, RGB_G, HSV_H, HSV_S, Lab_a, Lab_b, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Yen, Li, Isodata, Minimum"
+RGB_G,10,5,0.8573546302067521,"RGB_R, HSV_H, HSV_S, Lab_a, Lab_b, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Yen, Li, Isodata, Minimum"
+Lab_b,9,5,0.8577709023156451,"RGB_R, HSV_H, HSV_S, Lab_a, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Yen, Li, Isodata, Minimum"
+RGB_R,8,5,0.8574727043283757,"HSV_H, HSV_S, Lab_a, YCbCr_Cr, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Yen, Li, Isodata, Minimum"
+YCbCr_Cr,7,5,0.8570518575136019,"HSV_H, HSV_S, Lab_a, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Otsu, Yen, Li, Isodata, Minimum"
+Otsu,7,4,0.8553245809010386,"HSV_H, HSV_S, Lab_a, YCbCr_Cb, XYZ_X, YUV_U, YUV_V","Yen, Li, Isodata, Minimum"
+YCbCr_Cb,6,4,0.8539561231074432,"HSV_H, HSV_S, Lab_a, XYZ_X, YUV_U, YUV_V","Yen, Li, Isodata, Minimum"
+Li,6,3,0.8523609268982927,"HSV_H, HSV_S, Lab_a, XYZ_X, YUV_U, YUV_V","Yen, Isodata, Minimum"
+HSV_H,5,3,0.8494077878355731,"HSV_S, Lab_a, XYZ_X, YUV_U, YUV_V","Yen, Isodata, Minimum"
+YUV_V,4,3,0.8430743363803331,"HSV_S, Lab_a, XYZ_X, YUV_U","Yen, Isodata, Minimum"
+XYZ_X,3,3,0.8346105691861395,"HSV_S, Lab_a, YUV_U","Yen, Isodata, Minimum"
+Minimum,3,2,0.8263509339180467,"HSV_S, Lab_a, YUV_U","Yen, Isodata"
+Lab_a,2,2,0.8036854640398472,"HSV_S, YUV_U","Yen, Isodata"
+Yen,2,1,0.7705984723295168,"HSV_S, YUV_U",Isodata
