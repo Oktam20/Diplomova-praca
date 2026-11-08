@@ -1,4 +1,3 @@
-"""Návrh miest, kde sú na strane dokumentu škvrny."""
 from dataclasses import dataclass
 
 import cv2
@@ -67,7 +66,6 @@ def najmensia_plocha(dlhsia):
 
 
 def rozdiel_od_papiera(lab, papier, maska_strany, tmave_povolene):
-    """Miesta, ktoré sa farbou líšia od papiera."""
     dlhsia = max(maska_strany.shape)
     d = lab - papier
     de = np.sqrt((0.5 * d[..., 0]) ** 2 + d[..., 1] ** 2 + d[..., 2] ** 2)
@@ -96,7 +94,6 @@ def rozdiel_od_papiera(lab, papier, maska_strany, tmave_povolene):
 
 
 def odfiltruj(maska, strana):
-    """Vyradí nálezy, ktoré nie sú škvrny."""
     dlhsia = max(maska.shape)
     maska = odstran_tlac(maska, strana, najmensia_plocha(dlhsia))
     jas = na_lab(strana.obrazok)[..., 0]
@@ -145,7 +142,6 @@ def je_teply(nalez, box, strana):
 
 
 def tlaceny_prvok(nalez, jas, gradient):
-    """Rovnomerne tmavý útvar s ostrým okrajom."""
     okolie = (cv2.dilate(nalez.astype(np.uint8), kruh(3)) > 0) & ~nalez
     if not okolie.any():
         return False
@@ -175,7 +171,6 @@ def kontrast_s_okolim(nalez, box, strana):
 
 
 def odhad_tlace(bez_textu, tlac):
-    """Očakávaná farba tlače v LAB pre každý pixel."""
     h, w = tlac.shape
     f = min(1.0, ODHAD_STRANA / max(h, w))
     velkost = (max(8, round(w * f)), max(8, round(h * f)))
@@ -194,7 +189,6 @@ def odlisne_od_tlace(farba, ocakavana):
 
 
 def odstran_tlac(maska, strana, min_plocha):
-    """Z nálezov na tlači nechá len časti, ktoré sa od tlače líšia ako škvrna."""
     hladky = np.dstack([cv2.GaussianBlur(strana.lab[..., k], (0, 0), 2) for k in range(3)])
     ocakavana = odhad_tlace(strana.bez_textu, strana.tlac)
     jas_bez_textu = strana.lab[..., 0]
@@ -250,7 +244,6 @@ def skvrna_na_tlaci(kusok, nalez, farba, ocakavana, jas, min_plocha):
 
 
 def sirka_okraja(jas, oblast):
-    """Šírka prechodu na okraji oblasti v px."""
     oblast_u8 = oblast.astype(np.uint8)
     okolie = (cv2.dilate(oblast_u8, kruh(6)) > 0) & ~(cv2.dilate(oblast_u8, kruh(2)) > 0)
     if not okolie.any():

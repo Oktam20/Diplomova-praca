@@ -79,7 +79,6 @@ def maska_v_okne(strana, okno, miesto):
 
 
 def najlepsia_maska_pri(obrazok, miesto):
-    """Najlepšia maska z maska.py, ktorá pokrýva navrhnuté miesto."""
     g = max(2, int(ROZSIRENIE * max(obrazok.shape[:2]) / OKNO_NASOBOK))
     blizko = cv2.dilate(miesto, kruh(g)) > 0
     jadro = miesto > 0
@@ -102,7 +101,6 @@ def najlepsia_maska_pri(obrazok, miesto):
 
 
 def zluc_blizke(maska):
-    """Zlúči blízke časti masky do jednej škvrny."""
     pocet, oblasti, udaje, _ = cv2.connectedComponentsWithStats(maska)
     rodic = list(range(pocet))
 
@@ -135,7 +133,6 @@ def zluc_blizke(maska):
 
 
 def uloz_vyrezy(strana, maska, priecinok, meno):
-    """Uloží výrez každej škvrny a jeho masku."""
     (priecinok / "masky").mkdir(parents=True, exist_ok=True)
     h, w = maska.shape
     skupiny, udaje = zluc_blizke(maska)
@@ -162,7 +159,6 @@ def uloz_vyrezy(strana, maska, priecinok, meno):
 
 
 def uloz_prehlad(strana, navrh, maska, cesta):
-    """Pôvodná strana | bez textu + navrhnuté miesta | maska."""
     hrubka = max(2, round(max(strana.obrazok.shape[:2]) / 500))
     s_navrhom = strana.bez_textu.copy()
     obrysy, _ = cv2.findContours(navrh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)

@@ -1,4 +1,3 @@
-"""Strana, text a tlač na fotke dokumentu."""
 import cv2
 import numpy as np
 
@@ -31,7 +30,6 @@ def kruh(polomer):
 
 
 def na_lab(obrazok):
-    """BGR -> L* (0-100), a*, b*."""
     lab = cv2.cvtColor(obrazok, cv2.COLOR_BGR2LAB).astype(np.float32)
     lab[..., 0] *= 100.0 / 255.0
     lab[..., 1:] -= 128.0
@@ -67,7 +65,6 @@ def typicka_vyska_pismena(udaje, inak):
 
 
 def maska_strany(obrazok):
-    """Papier strany, ak je fotená na tmavom podklade, inak celý obrázok."""
     h, w = obrazok.shape[:2]
     jas = cv2.GaussianBlur(cv2.cvtColor(obrazok, cv2.COLOR_BGR2LAB)[..., 0], (0, 0), max(2, max(h, w) / 300))
     b = max(2, min(h, w) // 25)
@@ -92,7 +89,6 @@ def maska_strany(obrazok):
 
 
 def hrubka_tahu(obrazok, strana):
-    """Typický polomer ťahu písma v px."""
     dlhsia = max(obrazok.shape[:2])
     jas = cv2.cvtColor(obrazok, cv2.COLOR_BGR2LAB)[..., 0]
     tmave = cv2.adaptiveThreshold(jas, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,
@@ -110,7 +106,6 @@ def hrubka_tahu(obrazok, strana):
 
 
 def odstran_text(obrazok, lab, strana):
-    """Odstráni text black-hat transformáciou jasu."""
     jas = lab[..., 0]
     hrubka = hrubka_tahu(obrazok, strana)
     polomer = max(2, int(round(OKNO_TEXTU * hrubka)))
@@ -139,7 +134,6 @@ def vypln_pozadie(obrazok, diery, polomer):
 
 
 def odhad_papiera(obrazok, vynechat, strana):
-    """Farba papiera v LAB pre každý pixel."""
     h, w = obrazok.shape[:2]
     f = min(1.0, ODHAD_STRANA / max(h, w))
     velkost = (max(8, round(w * f)), max(8, round(h * f)))
@@ -156,7 +150,6 @@ def odhad_papiera(obrazok, vynechat, strana):
 
 
 def mapa_ilustracii(atrament, strana):
-    """Veľké súvislé siete čiar (ilustrácie, rytiny)."""
     binarna = (atrament > 0).astype(np.uint8)
     pocet, oblasti, udaje, _ = cv2.connectedComponentsWithStats(binarna, connectivity=8)
     if pocet <= 1:
@@ -178,7 +171,6 @@ def mapa_ilustracii(atrament, strana):
 
 
 def plna_tlac(lab, papier, strana, pismeno):
-    """Plné tlačené útvary s ostrým okrajom."""
     rozdiel = lab - papier
     odlisne = (np.linalg.norm(rozdiel * np.array([0.5, 1, 1], np.float32), axis=2) > PLNA_TLAC_DE) & (strana > 0)
     jas = lab[..., 0]
@@ -200,7 +192,6 @@ def plna_tlac(lab, papier, strana, pismeno):
 
 
 def mapa_tlace(povodny, rozmer):
-    """Mapa ilustrácií a plnej tlače v rozmere pracovného obrázka."""
     f = min(1.0, TLAC_STRANA / max(povodny.shape[:2]))
     obrazok = cv2.resize(povodny, None, fx=f, fy=f, interpolation=cv2.INTER_AREA) if f < 1 else povodny
     strana = maska_strany(obrazok)

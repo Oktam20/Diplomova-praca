@@ -74,7 +74,6 @@ def vypocitaj_prah(metoda, kanal):
 
 
 def vycisti(maska):
-    """Vyhladí masku, vyplní diery a nechá len dosť veľké oblasti, ktoré sa nedotýkajú okraja."""
     maska = cv2.morphologyEx(maska, cv2.MORPH_CLOSE, JADRO)
     maska = cv2.morphologyEx(maska, cv2.MORPH_OPEN, JADRO)
 
@@ -114,7 +113,6 @@ def kontrast(maska, kanal):
 
 
 def skore(maska, kanal):
-    """Kruhovitosť + bonus za primerané pokrytie - penalizácia za rozpad + kontrast s okolím."""
     pokrytie = cv2.countNonZero(maska) / maska.size
     if pokrytie == 0:
         return -math.inf
@@ -144,7 +142,6 @@ def skore(maska, kanal):
 
 
 def kandidati(obrazok, kanaly, metody):
-    """Všetky kandidátne masky: kanál × metóda × smer prahu (škvrna pod alebo nad prahom)."""
     for nazov, kanal in farebne_kanaly(obrazok).items():
         if nazov not in kanaly:
             continue

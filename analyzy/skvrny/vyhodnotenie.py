@@ -18,8 +18,6 @@ FARBY = {"train": "#256abf", "test": "#e8862a"}
 
 
 def porovnaj(auto, rucna):
-    """Prekryv automatickej a ručnej masky (bool polia rovnakého rozmeru)."""
-    
     tp = np.count_nonzero(auto & rucna)
     fp = np.count_nonzero(auto & ~rucna)
     fn = np.count_nonzero(~auto & rucna)
@@ -52,8 +50,6 @@ def vyhodnot(masky, rucne, rozdelenie):
 
 
 def suhrn(vysledky):
-    """Priemery metrík pre train, test a všetky fotky spolu."""
-    
     vsetky = pd.concat([vysledky, vysledky.assign(cast="spolu")])
     skupiny = vsetky.groupby("cast")
     tabulka = skupiny[METRIKY].mean()
@@ -97,8 +93,6 @@ def graf_druhy(vysledky, cesta):
 
 
 def graf_ukazky(vysledky, fotky, masky, rucne, cesta, pocet=5):
-    """Najlepšie, typické a najhoršie fotky: zelená = ručná maska, červená = automatická."""
-    
     zoradene = vysledky.sort_values("dice", ascending=False).reset_index(drop=True)
     stred = len(zoradene) // 2 - pocet // 2
     

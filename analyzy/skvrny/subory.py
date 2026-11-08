@@ -13,7 +13,6 @@ def zoznam_fotiek(priecinok):
 
 
 def najdi_fotku(priecinok, nazov):
-    """Cesta k fotke podľa názvu bez prípony."""
     return next(p for p in zoznam_fotiek(priecinok) if p.stem == nazov)
 
 
@@ -22,7 +21,6 @@ def nacitaj_obrazok(cesta):
 
 
 def nacitaj_masku(cesta):
-    """Maska ako bool pole, alebo None, ak súbor neexistuje."""
     if not Path(cesta).is_file():
         return None
     return cv2.imdecode(np.fromfile(str(cesta), np.uint8), cv2.IMREAD_GRAYSCALE) > 127
@@ -33,6 +31,5 @@ def uloz_obrazok(cesta, obrazok):
 
 
 def udaje_z_nazvu(nazov):
-    """'01_a_Epicoccum-layunese_OppoReno5z' -> ('01', 'Epicoccum')"""
     vzorka, _, druh = nazov.split("_")[:3]
     return vzorka, druh.split("-")[0].capitalize()

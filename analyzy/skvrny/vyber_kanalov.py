@@ -18,8 +18,6 @@ TOLERANCIA_RYCHLY = 0.01
 
 
 def kandidati_fotky(uloha):
-    """Skóre a Dice každého kandidáta jednej fotky (všetky kanály × metódy × smery)."""
-    
     fotka, cesta_fotky, cesta_rucnej = uloha
     rucna = nacitaj_masku(cesta_rucnej)
     
@@ -31,8 +29,6 @@ def kandidati_fotky(uloha):
 
 
 def nacitaj_kandidatov(fotky, rucne, znova):
-    """Výpočet trvá dlho, preto sa výsledok uloží do vysledky/kandidati.csv."""
-    
     subor = VYSLEDKY / "kandidati.csv"
     
     if subor.exists() and not znova:
@@ -55,15 +51,12 @@ def nacitaj_kandidatov(fotky, rucne, znova):
 
 
 def vybrane(tabulka, kanaly, metody):
-    """Kandidát s najvyšším skóre na každej fotke, keď sú povolené len dané kanály a metódy."""
-    
     povoleni = tabulka[tabulka.kanal.isin(kanaly) & tabulka.metoda.isin(metody)]
     
     return povoleni.loc[povoleni.groupby("fotka").skore.idxmax()]
 
 
 def vylucovanie(tabulka, kanaly, metody):
-    """Vždy sa odoberie kanál alebo metóda, bez ktorej je priemerný Dice vybraných masiek najvyšší."""
     kroky = [("", kanaly, metody, vybrane(tabulka, kanaly, metody).dice.mean())]
 
     while len(kanaly) * len(metody) > 2:
@@ -85,8 +78,6 @@ def vylucovanie(tabulka, kanaly, metody):
 
 
 def zvol_profily(kroky):
-    """Kvalitný = najmenšia sada bez straty, rýchly = najmenšia sada so stratou do 0,01 Dice."""
-    
     zaciatok = kroky.dice.iloc[0]
     
     return {
