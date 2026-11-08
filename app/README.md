@@ -20,8 +20,8 @@ npx expo start
 Aplikácia sa otvorí v Expo Go na mobile (naskenovaním QR kódu).
 
 Výpočty bežia v skrytom WebView (JavaScript s JIT je niekoľkonásobne rýchlejší ako Hermes).
-WebView spúšťa zbalený kód zo `src/mold-detection/webview-worker.generated.ts`, preto po každej
-zmene v `src/mold-detection/` treba spustiť:
+WebView spúšťa zbalený kód zo `src/vypocty/webview-worker.generated.ts`, preto po každej
+zmene v `src/vypocty/` treba spustiť:
 
 ```
 npm run build:worker
@@ -29,28 +29,32 @@ npm run build:worker
 
 ## Súbory
 
-Obrazovky (`src/app/`):
+Obrazovky (`src/app/`) a ich časti (`src/komponenty/`):
 
 | súbor | obsah |
 |---|---|
-| `index.tsx` | skenovanie – fotka, výber režimu, maska a spustenie klasifikácie |
-| `vysledok.tsx` | výsledok – určený druh a črty škvrny |
-| `_layout.tsx` | navigácia a skrytý WebView na výpočty |
+| `app/index.tsx` | skenovanie – fotka, výber režimu, maska a spustenie určenia druhu |
+| `app/vysledok.tsx` | výsledok – určený druh a črty škvrny |
+| `app/_layout.tsx` | navigácia a skrytý WebView na výpočty |
+| `komponenty/karta-skvrny.tsx` | výsledok jednej škvrny a cesta kľúčom |
+| `komponenty/prepinac.tsx`, `vodidlo.tsx`, `ikona.tsx` | prepínač, rohy na zarovnanie vzorky, ikony |
+| `vzhlad.ts` | farby a medzery |
 
-Výpočty (`src/mold-detection/`):
+Výpočty (`src/vypocty/`):
 
 | súbor | obsah | v analýzach |
 |---|---|---|
-| `mold-detection.ts` | hľadanie masky škvrny (kanály × metódy × smer prahu, skóre) | `analyzy/skvrny/maska.py` |
-| `color.ts`, `thresholds.ts` | farebné kanály a metódy prahovania | `maska.py` |
-| `document-stains.ts` | dokument: odstránenie textu, mapa tlače, návrh miest, výrezy | `analyzy/dokumenty/dokument_tlac.py`, `dokument_miesta.py` |
-| `document-mold.ts` | dokument: maska v okne okolo navrhnutého miesta | `analyzy/dokumenty/dokument.py` |
-| `manual-key.ts`, `manualny-kluc.json` | črty škvrny a určovací kľúč | – |
-| `gabor.ts` | Gaborov filter (textúra stredu škvrny) | – |
-| `spot-figure.ts` | obrázok čŕt na obrazovke výsledku | – |
-| `pipelines.ts`, `document-pipeline.ts` | celý postup režimov Obrázok a Dokument | – |
-| `device.ts` | príprava fotky a odoslanie výpočtu do WebView | – |
-| `compute-webview.tsx`, `webview-worker.ts` | skrytý WebView a kód, ktorý v ňom beží | – |
-| `binary.ts`, `raster.ts`, `blur.ts`, `geometry.ts` | operácie s obrázkami a maskami (ako v OpenCV) | – |
-| `image.ts`, `png.ts` | typy obrázkov, kódovanie PNG | – |
-| `result-store.ts`, `yield.ts` | výsledok medzi obrazovkami, prestávky výpočtu | – |
+| `maska.ts` | hľadanie masky škvrny (kanály × metódy × smer prahu, skóre) | `skvrny/maska.py` |
+| `kanaly.ts`, `prahy.ts` | farebné kanály a metódy prahovania | `skvrny/maska.py` |
+| `dokument-tlac.ts` | maska strany, odstránenie textu, odhad papiera, mapa tlače | `dokumenty/dokument_tlac.py` |
+| `dokument-miesta.ts` | rozdiel od papiera a vyradenie nálezov, ktoré nie sú škvrny | `dokumenty/dokument_miesta.py` |
+| `dokument.ts` | okná okolo navrhnutých miest, maska v okne, zlúčenie a výrezy škvŕn | `dokumenty/dokument.py` |
+| `crty.ts`, `gabor.ts` | odhad papiera pod škvrnou a črty škvrny (farba, zóny, lem, LBP, textúra) | – |
+| `kluc.ts`, `manualny-kluc.json` | určovací kľúč | – |
+| `obrazok-crt.ts` | obrázok čŕt na obrazovke výsledku | – |
+| `postup.ts` | celý postup režimov Obrázok a Dokument a určenie druhu | – |
+| `zariadenie.ts` | príprava fotky a výpočet vo WebView (alebo priamo v aplikácii) | – |
+| `webview.tsx`, `webview-worker.ts` | skrytý WebView a kód, ktorý v ňom beží | – |
+| `binarne.ts`, `filtre.ts` | operácie s maskami a obrázkami (ako v OpenCV) | – |
+| `obrazok.ts`, `png.ts`, `cas.ts` | obrázky a výrezy, PNG, časový limit | – |
+| `vysledok-skenu.ts` | výsledok skenu medzi obrazovkami | – |

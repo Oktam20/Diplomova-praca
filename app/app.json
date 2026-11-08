@@ -38,14 +38,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "DocScan potrebuje prístup do galérie, aby si mohol nahrať fotku dokumentu.",
-          "cameraPermission": "DocScan potrebuje prístup ku kamere, aby si mohol odfotiť dokument."
+          "photosPermission": "Aplikácia potrebuje prístup do galérie, aby si mohol nahrať fotku vzorky.",
+          "cameraPermission": "Aplikácia potrebuje prístup ku kamere, aby si mohol odfotiť vzorku."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "DocScan potrebuje prístup ku kamere, aby si mohol skenovať dokument."
+          "cameraPermission": "Aplikácia potrebuje prístup ku kamere, aby si mohol odfotiť vzorku."
         }
       ]
     ],
