@@ -1,0 +1,54 @@
+{
+  "druhy": {
+    "Alternaria": "Alternaria alternata",
+    "Arthrobacter": "Arthrobacter sp.",
+    "Aspergillus": "Aspergillus ochraceus",
+    "Cladosporium": "Cladosporium pseudocladosporioides",
+    "Curtobacterium": "Curtobacterium flaccumfaciens",
+    "Epicoccum": "Epicoccum layunese",
+    "Exiguobacterium": "Exiguobacterium indicum",
+    "Micrococcus": "Micrococcus sp.",
+    "Penicilium": "Penicilium mangini",
+    "Rhodococcus": "Rhodococcus degradans",
+    "Sphingomonas": "Sphingomonas aquatilis",
+    "Talaromyces": "Talaromyces purpureogenus"
+  },
+  "skupiny": {
+    "tmave": ["Alternaria", "Aspergillus", "Cladosporium", "Epicoccum", "Penicilium"],
+    "svetle": ["Arthrobacter", "Curtobacterium", "Exiguobacterium", "Micrococcus", "Rhodococcus", "Sphingomonas", "Talaromyces"]
+  },
+  "nazvy_skupin": {"tmave": "tmavé – do hneda", "svetle": "svetlé – do žlta"},
+  "jas": {"crta": "farba_dL_mean", "neista_zona": 3.0},
+  "sytost": {"crta": "farba_chroma"},
+  "ton": {
+    "crta": "farba_odtien_deg",
+    "ton_od": -155.895,
+    "podskupiny": {
+      "do_cervena": ["Arthrobacter"],
+      "stred": ["Rhodococcus", "Talaromyces", "Exiguobacterium", "Curtobacterium", "Sphingomonas"],
+      "do_zlta": ["Micrococcus"]
+    },
+    "nazvy": {"do_cervena": "do červena", "stred": "žltooranžové", "do_zlta": "čisto žlté"}
+  },
+  "textura": {
+    "crta": "gabor_l32_odozva",
+    "nad_prahom": ["Talaromyces"],
+    "pod_prahom": ["Curtobacterium", "Exiguobacterium", "Rhodococcus", "Sphingomonas"],
+    "nazvy": {"nad_prahom": "hrubá textúra (pleseň)", "pod_prahom": "jemnejšia textúra (baktérie)"}
+  },
+  "vetvy": {
+    "tmave": [
+      {"druh": "Cladosporium", "crty": ["zona1_dL"], "smer": "<="},
+      {"druh": "Rhodococcus", "crty": ["zona3_db"], "smer": ">", "len_fotky_vetvy": true},
+      {"druh": "Aspergillus", "crty": ["zona2_db"], "smer": ">"},
+      {"druh": "Penicilium", "crty": ["zona_stred_minus_okraj_dL", "zona_stred_minus_okraj_db"]},
+      {"druh": "Epicoccum", "inak": "Alternaria", "crty": ["lbp_P8R1_9", "zona3_dL"]}
+    ],
+    "stred_hladke": [
+      {"druh": "Aspergillus", "crty": ["zona2_dL", "farba_dL_p10"], "len_fotky_vetvy": true},
+      {"druh": "Exiguobacterium", "crty": ["zona1_db", "farba_db_p50"]},
+      {"druh": "Rhodococcus", "crty": ["farba_db_p90"], "smer": "<="},
+      {"druh": "Curtobacterium", "inak": "Sphingomonas", "crty": ["zona_stred_minus_okraj_db", "halo_da"]}
+    ]
+  }
+}

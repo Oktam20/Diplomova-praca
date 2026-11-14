@@ -2,7 +2,8 @@
 
 Python kód k diplomovej práci. Pre fotku škvrny nájde **masku** (ktoré pixely patria škvrne),
 porovná ju s ručne obkreslenými maskami a zdôvodní výber farebných kanálov. Druhá časť
-hľadá škvrny na **stranách dokumentov** s textom a ilustráciami.
+hľadá škvrny na **stranách dokumentov** s textom a ilustráciami. Tretia časť **určí druh**
+škvrny určovacím kľúčom, ktorý sa učí na trénovacích fotkách a overuje na testovacích.
 
 Maska sa hľadá bez trénovania: fotka sa rozloží na farebné kanály, každý kanál sa prahuje
 niekoľkými automatickými metódami a vyberie sa kandidát, ktorý najviac vyzerá ako škvrna
@@ -32,12 +33,13 @@ Všetky príkazy nižšie sa spúšťajú **z priečinka `analyzy/`** ako moduly
 bash spusti_analyzy.sh             # všetky kroky
 bash spusti_analyzy.sh skvrny      # len časť 1
 bash spusti_analyzy.sh dokumenty   # len časť 2
+bash spusti_analyzy.sh klasifikacia  # len časť 3
 ```
 
 Skript spustí kroky nižšie postupne a všetko uloží do vlastného priečinka `behy/<dátum_čas>/`
 (masky, tabuľky, grafy, strany) spolu so záznamom `beh.log` – čo ktorý krok vypísal, ako dlho
 trval a na konci súhrn. Doterajšie výsledky v `skvrny/vysledky/`, `images/D2/masky/` a
-`dokumenty/vysledky/` sa neprepíšu.
+`dokumenty/vysledky/` a `klasifikacia/` sa neprepíšu.
 
 Jednotlivo (výstupy idú do predvolených priečinkov):
 
@@ -49,6 +51,8 @@ python -m skvrny.vyber_kanalov --fotky images/D2 --rucne images/D2masks
 
 python -m dokumenty.generuj_strany --fotky images/D2 --masky images/D2masks
 python -m dokumenty.dokument images/testovacie_strany
+
+python -m klasifikacia.postav_kluc --fotky images/D2 --masky images/D2/masky
 ```
 
 ---
@@ -256,14 +260,45 @@ Potrebuje masky škvŕn – predvolene `images/D2/masky/` z kroku 1.1, iné cez 
 
 ---
 
+## 3. Klasifikácia – určenie druhu (`klasifikacia/`)
+
+### 3.1 Stavba a overenie určovacieho kľúča
+
+```
+python -m klasifikacia.postav_kluc --fotky images/D2 --masky images/D2/masky
+```
+
+**Čo urobí:**
+
+1. z fotky a masky každej škvrny vypočíta črty voči farbe okolitého papiera: farbu (jas, sýtosť,
+   tón, percentily), farbu v 4 zónach od okraja k stredu, farbu lemu, zrnitosť (LBP) a hrubú
+   textúru (Gaborov filter),
+2. na **trénovacích** fotkách naučí prahy kľúča; štruktúra kľúča (skupiny druhov, poradie otázok
+   a ich črty) je v `klasifikacia/struktura_kluca.json`,
+3. úspešnosť na train odhadne krížovou validáciou po kartičkách a kľúč overí na **testovacích**
+   fotkách – pre každý druh zvlášť.
+
+S `--uloz` zapíše kľúč aj do `klasifikacia/kluc.json` a do aplikácie.
+
+**Výstup v `klasifikacia/vysledky/`:** `kluc.json`, `suhrn.csv`, `fotky.csv`, `crty.csv` a grafy
+`uspesnost.png` (celková úspešnosť), `po_druhoch.png` (po druhoch na train a test) a
+`zameny_test.png` (kam padajú testovacie fotky každého druhu).
+
+**Výsledok:** test **71,7 % fotiek** a **76,9 % kartičiek** určených správne (train – krížová
+validácia 78,7 %). Podrobnosti a popis kľúča sú v [klasifikacia/README.md](klasifikacia/README.md).
+
+---
+
 ## Súbory
 
 ```
 analyzy/
 ├── requirements.txt
+├── spusti_analyzy.sh             všetky kroky naraz
 ├── images/                  dáta (fotky, ručné masky, testovacie strany)
 ├── skvrny/
 │   ├── maska.py             algoritmus hľadania masky
+│   ├── morfologia.py             dilatácia / erózia (ako OpenCV, rýchlejšie)
 │   ├── vytvor_masky.py      1.1  masky pre priečinok fotiek
 │   ├── rozdelenie.py        1.2  rozdelenie na train / test
 │   ├── rozdelenie.csv            rozdelenie použité v práci
@@ -273,15 +308,22 @@ analyzy/
 │   ├── docs/                technický popis jednotlivých skriptov
 │   ├── grafy_z_prace/       grafy z pôvodnej analýzy v práci s popisom
 │   └── vysledky/            výstupy skriptov
-└── dokumenty/
-    ├── dokument.py          2.2  celý postup na strane
-    ├── dokument_tlac.py          strana, odstránenie textu, mapa tlače
-    ├── dokument_miesta.py        návrh miest a filtre
-    ├── generuj_strany.py    2.1  testovacie strany
-    ├── test_dokumenty.py    2.3  syntetický test
-    ├── docs/                technický popis
-    └── vysledky/            výstupy skriptov
+├── dokumenty/
+│   ├── dokument.py          2.2  celý postup na strane
+│   ├── dokument_tlac.py          strana, odstránenie textu, mapa tlače
+│   ├── dokument_miesta.py        návrh miest a filtre
+│   ├── generuj_strany.py    2.1  testovacie strany
+│   ├── test_dokumenty.py    2.3  syntetický test
+│   ├── docs/                technický popis
+│   └── vysledky/            výstupy skriptov
+└── klasifikacia/
+    ├── crty.py                   črty škvrny
+    ├── kluc.py                   učenie prahov a určenie škvrny kľúčom
+    ├── struktura_kluca.json      štruktúra kľúča (bez prahov)
+    ├── postav_kluc.py       3.1  stavba na train, overenie na test, grafy
+    ├── kluc.json                 kľúč, ktorý používa aplikácia
+    └── vysledky/            výstupy skriptu
 ```
 
-Podrobnejší technický popis (vzorce skóre, metriky, parametre) je v `skvrny/docs/`
-a `dokumenty/docs/`.
+Podrobnejší technický popis (vzorce skóre, metriky, parametre) je v `skvrny/docs/`,
+`dokumenty/docs/` a `klasifikacia/README.md`.
