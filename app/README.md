@@ -19,9 +19,13 @@ npx expo start
 
 Aplikácia sa otvorí v Expo Go na mobile (naskenovaním QR kódu).
 
-Výpočty bežia v skrytom WebView (JavaScript s JIT je niekoľkonásobne rýchlejší ako Hermes).
-WebView spúšťa zbalený kód zo `src/vypocty/webview-worker.generated.ts`, preto po každej
-zmene v `src/vypocty/` treba spustiť:
+Výpočty bežia v skrytom WebView v Pyodide (Python s numpy, OpenCV a scikit-image skompilovaný
+do WebAssembly). Maska škvrny aj škvrny na dokumentoch sa počítajú priamo Python súbormi
+z `analyzy/` (`skvrny/maska.py`, `dokumenty/dokument*.py`) – aplikácia ich len zavolá.
+Python a knižnice (desiatky MB) sa pri prvom spustení stiahnu z internetu, potom sú v cache.
+
+Python súbory sa do WebView vkladajú pri zbalení, preto po každej zmene v `src/vypocty/`
+alebo v `analyzy/` treba spustiť:
 
 ```
 npm run build:worker
@@ -42,19 +46,13 @@ Obrazovky (`src/app/`) a ich časti (`src/komponenty/`):
 
 Výpočty (`src/vypocty/`):
 
-| súbor | obsah | v analýzach |
-|---|---|---|
-| `maska.ts` | hľadanie masky škvrny (kanály × metódy × smer prahu, skóre) | `skvrny/maska.py` |
-| `kanaly.ts`, `prahy.ts` | farebné kanály a metódy prahovania | `skvrny/maska.py` |
-| `dokument-tlac.ts` | maska strany, odstránenie textu, odhad papiera, mapa tlače | `dokumenty/dokument_tlac.py` |
-| `dokument-miesta.ts` | rozdiel od papiera a vyradenie nálezov, ktoré nie sú škvrny | `dokumenty/dokument_miesta.py` |
-| `dokument.ts` | okná okolo navrhnutých miest, maska v okne, zlúčenie a výrezy škvŕn | `dokumenty/dokument.py` |
-| `crty.ts`, `gabor.ts` | odhad papiera pod škvrnou a črty škvrny (farba, zóny, lem, LBP, textúra) | – |
-| `kluc.ts`, `manualny-kluc.json` | určovací kľúč | – |
-| `obrazok-crt.ts` | obrázok čŕt na obrazovke výsledku | – |
-| `postup.ts` | celý postup režimov Obrázok a Dokument a určenie druhu | – |
-| `zariadenie.ts` | príprava fotky a výpočet vo WebView (alebo priamo v aplikácii) | – |
-| `webview.tsx`, `webview-worker.ts` | skrytý WebView a kód, ktorý v ňom beží | – |
-| `binarne.ts`, `filtre.ts` | operácie s maskami a obrázkami (ako v OpenCV) | – |
-| `obrazok.ts`, `png.ts`, `cas.ts` | obrázky a výrezy, PNG, časový limit | – |
-| `vysledok-skenu.ts` | výsledok skenu medzi obrazovkami | – |
+| súbor | obsah |
+|---|---|
+| `aplikacia.py` | prepojenie s analýzami: načítanie fotky, volanie `najdi_masku` a `spracuj_stranu`, obrázky na zobrazenie |
+| `webview.tsx`, `webview-worker.ts` | skrytý WebView, načítanie Pyodide a súborov z `analyzy/`, výmena správ s aplikáciou |
+| `zariadenie.ts` | príprava fotky (zmenšenie, PNG) a odoslanie výpočtu do WebView |
+| `crty.ts`, `gabor.ts` | odhad papiera pod škvrnou a črty škvrny (farba, zóny, lem, LBP, textúra) |
+| `kluc.ts`, `manualny-kluc.json` | určovací kľúč |
+| `obrazok-crt.ts` | obrázok čŕt na obrazovke výsledku |
+| `binarne.ts`, `filtre.ts`, `obrazok.ts`, `png.ts` | pomocné operácie pre črty (ako v OpenCV) a PNG |
+| `vysledok-skenu.ts` | výsledok skenu medzi obrazovkami |

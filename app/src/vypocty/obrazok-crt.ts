@@ -57,5 +57,5 @@ export function obrazokCrt(obr: Obrazok, maska: Uint8Array, zony: Int8Array, lem
   const fw = Math.max(1, Math.round(cw * f));
   const fh = Math.max(1, Math.round(ch * f));
   const zmenseny = f < 1 ? zmenLinearne(out, 3, cw, ch, fw, fh) : out;
-  return naBase64(pngFarebny({ sirka: fw, vyska: fh, data: zmenseny }, 1));
+  return naBase64(pngFarebny({ sirka: fw, vyska: fh, data: zmenseny }));
 }

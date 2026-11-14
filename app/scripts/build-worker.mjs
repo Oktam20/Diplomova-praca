@@ -11,6 +11,7 @@ const vysledok = await build({
   platform: 'browser',
   target: 'safari15',
   minify: true,
+  loader: { '.py': 'text' },
   write: false,
 });
 const kod = vysledok.outputFiles[0].text;
