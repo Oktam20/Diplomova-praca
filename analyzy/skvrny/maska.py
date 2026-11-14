@@ -2,12 +2,18 @@
 
 Fotka sa rozloží na farebné kanály, každý kanál sa prahuje niekoľkými metódami v oboch
 smeroch a z takto vzniknutých kandidátnych masiek sa vyberie tá s najvyšším skóre.
+
+Spracovanie je rovnaké ako v aplikácii (app/python): morfológia so zbalenými bitmi
+(skvrny.morfologia), maska s rovnakým celočíselným prahom sa počíta len raz a kontrast
+sa počíta len v okolí masky – výsledok je rovnaký, len rýchlejšie.
 """
 import math
 
 import cv2
 import numpy as np
 from skimage import filters
+
+from skvrny.morfologia import uzavri_a_otvor_masku
 
 PRIESTORY = [
     ("RGB", None, ["R", "G", "B"]),
@@ -51,18 +57,22 @@ VAHA_KONTRASTU = 0.3
 JADRO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
 
 
-def farebne_kanaly(obrazok):
-    """Všetkých 19 kanálov fotky (BGR) v pevnom poradí VSETKY_KANALY."""
-    kanaly = {}
+def farebne_kanaly(obrazok, kanaly=VSETKY_KANALY):
+    """Kanály fotky (BGR) v pevnom poradí VSETKY_KANALY – počítajú sa len potrebné farebné priestory."""
+    vysledok = {}
     for priestor, konverzia, zlozky in PRIESTORY:
+        if not any(f"{priestor}_{zlozka}" in kanaly for zlozka in zlozky):
+            continue
         if konverzia is None:
             casti = cv2.split(obrazok)[::-1]
         else:
             casti = cv2.split(cv2.cvtColor(obrazok, konverzia))
         for zlozka, kanal in zip(zlozky, casti):
-            kanaly[f"{priestor}_{zlozka}"] = kanal
-    kanaly["Gray"] = cv2.cvtColor(obrazok, cv2.COLOR_BGR2GRAY)
-    return kanaly
+            if f"{priestor}_{zlozka}" in kanaly:
+                vysledok[f"{priestor}_{zlozka}"] = kanal
+    if "Gray" in kanaly:
+        vysledok["Gray"] = cv2.cvtColor(obrazok, cv2.COLOR_BGR2GRAY)
+    return vysledok
 
 
 def vypocitaj_prah(metoda, kanal):
@@ -73,9 +83,16 @@ def vypocitaj_prah(metoda, kanal):
         return None  # napr. Minimum, keď histogram nemá dva vrcholy
 
 
+def celociselny_prah(prah, smer):
+    """Najväčšia (pod) alebo najmenšia (nad) hodnota 8-bitového kanála, ktorá ešte do masky nepatrí."""
+    if not math.isfinite(prah):
+        return prah
+    return math.ceil(prah) - 1 if smer == "pod" else math.floor(prah)
+
+
 def vycisti(maska):
-    maska = cv2.morphologyEx(maska, cv2.MORPH_CLOSE, JADRO)
-    maska = cv2.morphologyEx(maska, cv2.MORPH_OPEN, JADRO)
+    """Vyčistená maska a jej oblasti (čísla oblastí a ktoré z nich ostali)."""
+    maska = uzavri_a_otvor_masku(maska, JADRO).astype(np.uint8) * 255
 
     obrysy, _ = cv2.findContours(maska, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     vyplnena = np.zeros_like(maska)
@@ -84,15 +101,12 @@ def vycisti(maska):
 
     vyska, sirka = maska.shape
     min_plocha = max(150, int(0.002 * vyska * sirka))
-    pocet, oblasti, udaje, _ = cv2.connectedComponentsWithStats(vyplnena)
-
-    vysledok = np.zeros_like(maska)
-    for i in range(1, pocet):
-        x, y, w, h, plocha = udaje[i]
-        pri_okraji = x == 0 or y == 0 or x + w == sirka or y + h == vyska
-        if plocha >= min_plocha and not pri_okraji:
-            vysledok[oblasti == i] = 255
-    return vysledok
+    _, oblasti, udaje, _ = cv2.connectedComponentsWithStats(vyplnena)
+    x, y, w, h, plocha = udaje.T
+    pri_okraji = (x == 0) | (y == 0) | (x + w == sirka) | (y + h == vyska)
+    ponechat = (plocha >= min_plocha) & ~pri_okraji
+    ponechat[0] = False
+    return ponechat[oblasti].astype(np.uint8) * 255, oblasti, ponechat
 
 
 def kontrast(maska, kanal):
@@ -101,6 +115,11 @@ def kontrast(maska, kanal):
         return 0.0
 
     polomer = max(3, round(0.15 * math.sqrt(plocha / math.pi)))
+    ys, xs = np.nonzero(maska)
+    y0, x0 = max(0, ys.min() - polomer - 1), max(0, xs.min() - polomer - 1)
+    y1, x1 = ys.max() + polomer + 2, xs.max() + polomer + 2
+    maska, kanal = maska[y0:y1, x0:x1], kanal[y0:y1, x0:x1]
+
     vonku = np.where(maska, 0, 255).astype(np.uint8)
     vzdialenost = cv2.distanceTransform(vonku, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
     lem = (vzdialenost > 0) & (vzdialenost <= polomer)
@@ -141,11 +160,11 @@ def skore(maska, kanal):
     return kruhovitost + bonus - penalizacia + VAHA_KONTRASTU * math.log1p(kontrast(maska > 0, kanal))
 
 
-def kandidati(obrazok, kanaly, metody):
-    for nazov, kanal in farebne_kanaly(obrazok).items():
-        if nazov not in kanaly:
-            continue
+def kandidati(obrazok, kanaly, metody, so_skore=True):
+    """Všetky kandidátne masky; maska s rovnakým celočíselným prahom sa nepočíta znova (opakovany=True)."""
+    for nazov, kanal in farebne_kanaly(obrazok, kanaly).items():
         kanal = cv2.GaussianBlur(kanal, (5, 5), 0)
+        hotove = {}
 
         for metoda in METODY:
             if metoda not in metody:
@@ -155,10 +174,15 @@ def kandidati(obrazok, kanaly, metody):
                 continue
 
             for smer in ("pod", "nad"):
-                surova = kanal < prah if smer == "pod" else kanal > prah
-                maska = vycisti(surova.astype(np.uint8) * 255)
-                yield {"kanal": nazov, "metoda": metoda, "smer": smer, "maska": maska,
-                       "skore": skore(maska, kanal), "rozmazany_kanal": kanal}
+                kluc = (smer, celociselny_prah(prah, smer))
+                opakovany = kluc in hotove
+                if not opakovany:
+                    surova = kanal < prah if smer == "pod" else kanal > prah
+                    maska, oblasti, ponechat = vycisti(surova.astype(np.uint8) * 255)
+                    hotove[kluc] = {"maska": maska, "oblasti": oblasti, "ponechat": ponechat,
+                                    "skore": skore(maska, kanal) if so_skore else None}
+                yield {"kanal": nazov, "metoda": metoda, "smer": smer, **hotove[kluc],
+                       "rozmazany_kanal": kanal, "opakovany": opakovany}
 
 
 def najdi_masku(obrazok, profil="rychly", max_strana=1200):

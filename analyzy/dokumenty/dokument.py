@@ -7,12 +7,12 @@ import shutil
 from pathlib import Path
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
 from dokumenty.dokument_miesta import navrhni_miesta
-from dokumenty.dokument_tlac import hystereza, kruh, mapa_tlace
+from dokumenty.dokument_tlac import kruh, mapa_tlace, priprav_stranu
 from skvrny.maska import PROFILY, kandidati, skore
+from skvrny.morfologia import rozsir_masku
 from skvrny.subory import nacitaj_obrazok, uloz_obrazok, zoznam_fotiek
 
 VYSLEDKY = Path(__file__).parent / "vysledky"
@@ -34,11 +34,12 @@ ZLUCENIE = 0.3
 def spracuj_stranu(povodny):
     f = min(1.0, PRACOVNA_STRANA / max(povodny.shape[:2]))
     obrazok = cv2.resize(povodny, None, fx=f, fy=f, interpolation=cv2.INTER_AREA) if f < 1 else povodny
-    return najdi_skvrny(obrazok, mapa_tlace(povodny, obrazok.shape[:2]))
+    priprava = priprav_stranu(obrazok) if f == 1 else None
+    return najdi_skvrny(obrazok, mapa_tlace(povodny, obrazok.shape[:2], priprava), priprava)
 
 
-def najdi_skvrny(obrazok, tlac):
-    navrh, strana = navrhni_miesta(obrazok, tlac)
+def najdi_skvrny(obrazok, tlac, priprava=None):
+    navrh, strana = navrhni_miesta(obrazok, tlac, priprava)
     maska = np.zeros(navrh.shape, np.uint8)
     for okno, miesto in okna(navrh):
         if (maska[miesto] > 0).mean() > 0.5:
@@ -80,14 +81,19 @@ def maska_v_okne(strana, okno, miesto):
 
 def najlepsia_maska_pri(obrazok, miesto):
     g = max(2, int(ROZSIRENIE * max(obrazok.shape[:2]) / OKNO_NASOBOK))
-    blizko = cv2.dilate(miesto, kruh(g)) > 0
+    blizko = rozsir_masku(miesto, kruh(g))
     jadro = miesto > 0
     kanaly, metody = PROFILY[PROFIL]
 
     najlepsie_skore, najlepsia = -np.inf, None
-    for kandidat in kandidati(obrazok, kanaly, metody):
+    for kandidat in kandidati(obrazok, kanaly, metody, so_skore=False):
+        if kandidat["opakovany"]:
+            continue
         maska = kandidat["maska"] > 0
-        maska = hystereza(maska, maska & blizko)
+        pri_mieste = np.zeros(len(kandidat["ponechat"]), bool)
+        pri_mieste[np.unique(kandidat["oblasti"][maska & blizko])] = True
+        pri_mieste[0] = False
+        maska = pri_mieste[kandidat["oblasti"]]
         if not maska.any() or (maska & jadro).sum() < MIN_POKRYTIE * jadro.sum():
             continue
         ys, xs = np.nonzero(maska)
@@ -132,11 +138,9 @@ def zluc_blizke(maska):
     return skupiny, statistiky
 
 
-def uloz_vyrezy(strana, maska, priecinok, meno):
-    (priecinok / "masky").mkdir(parents=True, exist_ok=True)
+def vyrezy(strana, maska):
     h, w = maska.shape
     skupiny, udaje = zluc_blizke(maska)
-    pocet = 0
     for i in range(1, len(udaje)):
         x, y, sirka, vyska, plocha = (int(v) for v in udaje[i])
         if plocha < VYREZ_MIN_PLOCHA:
@@ -150,15 +154,23 @@ def uloz_vyrezy(strana, maska, priecinok, meno):
             vyrez[mimo] = np.median(vyrez[~mimo], axis=0).astype(np.uint8)
         if min(vyrez.shape[:2]) < 40:
             continue
+        yield i, (x0, y0, x1, y1), vyrez, ((skupiny[y0:y1, x0:x1] == i) * 255).astype(np.uint8)
 
+
+def uloz_vyrezy(strana, maska, priecinok, meno):
+    (priecinok / "masky").mkdir(parents=True, exist_ok=True)
+    pocet = 0
+    for i, _, vyrez, maska_vyrezu in vyrezy(strana, maska):
         nazov = f"{meno}_{i:03d}.png"
         uloz_obrazok(priecinok / nazov, vyrez)
-        uloz_obrazok(priecinok / "masky" / nazov, ((skupiny[y0:y1, x0:x1] == i) * 255).astype(np.uint8))
+        uloz_obrazok(priecinok / "masky" / nazov, maska_vyrezu)
         pocet += 1
     return pocet
 
 
 def uloz_prehlad(strana, navrh, maska, cesta):
+    import matplotlib.pyplot as plt
+
     hrubka = max(2, round(max(strana.obrazok.shape[:2]) / 500))
     s_navrhom = strana.bez_textu.copy()
     obrysy, _ = cv2.findContours(navrh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)

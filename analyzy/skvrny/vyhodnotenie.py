@@ -128,23 +128,25 @@ def main():
     parser.add_argument("--rucne", type=Path, required=True, help="ručné masky (<fotka>.png)")
     parser.add_argument("--fotky", type=Path, help="fotky – ak sú zadané, nakreslia sa ukážky")
     parser.add_argument("--rozdelenie", type=Path, default=SUBOR)
+    parser.add_argument("--vystup", type=Path, default=VYSLEDKY, help="kam uložiť tabuľky a grafy")
     args = parser.parse_args()
 
-    VYSLEDKY.mkdir(exist_ok=True)
+    vystup = args.vystup
+    vystup.mkdir(parents=True, exist_ok=True)
     vysledky = vyhodnot(args.masky, args.rucne, nacitaj_rozdelenie(args.rozdelenie))
-    vysledky.to_csv(VYSLEDKY / "vyhodnotenie.csv", index=False)
+    vysledky.to_csv(vystup / "vyhodnotenie.csv", index=False)
 
     tabulka = suhrn(vysledky)
-    tabulka.to_csv(VYSLEDKY / "suhrn.csv")
+    tabulka.to_csv(vystup / "suhrn.csv")
     print(tabulka.round(3).to_string())
     print()
     print(vysledky.groupby("druh").dice.mean().sort_values().round(3).to_string())
 
-    graf_histogram(vysledky, VYSLEDKY / "dice_histogram.png")
-    graf_druhy(vysledky, VYSLEDKY / "dice_po_druhoch.png")
+    graf_histogram(vysledky, vystup / "dice_histogram.png")
+    graf_druhy(vysledky, vystup / "dice_po_druhoch.png")
     
     if args.fotky:
-        graf_ukazky(vysledky, args.fotky, args.masky, args.rucne, VYSLEDKY / "ukazky.png")
+        graf_ukazky(vysledky, args.fotky, args.masky, args.rucne, vystup / "ukazky.png")
 
 
 if __name__ == "__main__":

@@ -52,6 +52,7 @@ def main():
     parser = argparse.ArgumentParser(description="Rozdelí fotky na train a test.")
     parser.add_argument("fotky", type=Path, help="priečinok s fotkami")
     parser.add_argument("--znova", action="store_true", help="prepísať existujúce rozdelenie.csv")
+    parser.add_argument("--vystup", type=Path, default=VYSLEDKY, help="kam uložiť graf")
     args = parser.parse_args()
 
     if SUBOR.exists() and not args.znova:
@@ -64,8 +65,8 @@ def main():
     for cast, skupina in rozdelenie.groupby("cast"):
         print(f"{cast}: {skupina.vzorka.nunique()} kartičiek, {len(skupina)} fotiek")
 
-    VYSLEDKY.mkdir(exist_ok=True)
-    graf(rozdelenie, VYSLEDKY / "rozdelenie.png")
+    args.vystup.mkdir(parents=True, exist_ok=True)
+    graf(rozdelenie, args.vystup / "rozdelenie.png")
 
 
 if __name__ == "__main__":

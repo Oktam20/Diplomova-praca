@@ -1,11 +1,15 @@
+"""Návrh miest škvŕn na strane: farebný rozdiel od papiera a vyradenie nálezov, ktoré nie sú škvrny.
+
+Morfológia ide cez skvrny.morfologia – rovnaké spracovanie ako v aplikácii (app/python).
+"""
 from dataclasses import dataclass
 
 import cv2
 import numpy as np
 
-from dokumenty.dokument_tlac import (ODHAD_STRANA, TMAVE_POZADIE, gradient_jasu, hystereza, kruh,
-                                     maska_strany, na_lab, neparne, odhad_papiera, odstran_text, okolo,
-                                     okrajovy_pas)
+from dokumenty.dokument_tlac import (ODHAD_STRANA, TMAVE_POZADIE, gradient_jasu, hystereza, kruh, na_lab,
+                                     neparne, odhad_papiera, okolo, okrajovy_pas, priprav_stranu)
+from skvrny.morfologia import rozsir_masku, uzavri_masku
 
 SILNY_K, SLABY_K = 4.0, 2.0
 SILNY_MIN, SLABY_MIN = 4.5, 3.5
@@ -35,6 +39,7 @@ MAKKY_OKRAJ = 6.0
 @dataclass
 class Strana:
     obrazok: np.ndarray
+    jas: np.ndarray
     maska: np.ndarray
     bez_textu: np.ndarray
     text: np.ndarray
@@ -44,18 +49,18 @@ class Strana:
     tlac: np.ndarray
 
 
-def rozober_stranu(obrazok, tlac):
-    maska = maska_strany(obrazok)
-    bez_textu, text, polomer, _ = odstran_text(obrazok, na_lab(obrazok), maska)
+def rozober_stranu(obrazok, tlac, priprava=None):
+    lab_obrazka, maska, (bez_textu, text, polomer, _) = priprava or priprav_stranu(obrazok)
+    text = text.copy()
     lab = na_lab(bez_textu)
     tlac = tlac & (maska > 0)
     papier = odhad_papiera(bez_textu, (tlac * 255).astype(np.uint8), maska)
     text[lab[..., 0] < papier[..., 0] - TMAVE_POZADIE] = 0
-    return Strana(obrazok, maska, bez_textu, text, polomer, lab, papier, tlac)
+    return Strana(obrazok, lab_obrazka[..., 0], maska, bez_textu, text, polomer, lab, papier, tlac)
 
 
-def navrhni_miesta(obrazok, tlac):
-    strana = rozober_stranu(obrazok, tlac)
+def navrhni_miesta(obrazok, tlac, priprava=None):
+    strana = rozober_stranu(obrazok, tlac, priprava)
     tmave_povolene = (strana.maska > 0) & ~strana.tlac
     nalezy = rozdiel_od_papiera(strana.lab, strana.papier, strana.maska, tmave_povolene)
     return odfiltruj(nalezy, strana), strana
@@ -85,7 +90,7 @@ def rozdiel_od_papiera(lab, papier, maska_strany, tmave_povolene):
     de[~na_strane | ~farebne] = 0
 
     maska = hystereza(de > slaby, de > silny).astype(np.uint8) * 255
-    maska = cv2.morphologyEx(maska, cv2.MORPH_CLOSE, kruh(max(1, dlhsia / 600)))
+    maska = uzavri_masku(maska, kruh(max(1, dlhsia / 600))).astype(np.uint8) * 255
     obrysy, _ = cv2.findContours(maska, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     maska[:] = 0
     min_plocha = najmensia_plocha(dlhsia)
@@ -96,7 +101,7 @@ def rozdiel_od_papiera(lab, papier, maska_strany, tmave_povolene):
 def odfiltruj(maska, strana):
     dlhsia = max(maska.shape)
     maska = odstran_tlac(maska, strana, najmensia_plocha(dlhsia))
-    jas = na_lab(strana.obrazok)[..., 0]
+    jas = strana.jas
     gradient = gradient_jasu(jas)
     ramik = strana.maska.copy()
     ramik[[0, -1], :] = 0
@@ -125,7 +130,7 @@ def v_hustom_texte(oblasti, i, udaje, strana):
     x0, y0, x1, y1 = okolo(udaje, 3 * strana.polomer + 2, oblasti.shape)
     nalez = (oblasti[y0:y1, x0:x1] == i).astype(np.uint8)
     text = strana.text[y0:y1, x0:x1] > 0
-    okolie = (cv2.dilate(nalez, kruh(3 * strana.polomer)) > 0) & ~(cv2.dilate(nalez, kruh(2)) > 0)
+    okolie = rozsir_masku(nalez, kruh(3 * strana.polomer)) & ~rozsir_masku(nalez, kruh(2))
     return text[nalez > 0].mean() > TEXT_VNUTRI or (okolie.any() and text[okolie].mean() > TEXT_OKOLO)
 
 
@@ -142,7 +147,7 @@ def je_teply(nalez, box, strana):
 
 
 def tlaceny_prvok(nalez, jas, gradient):
-    okolie = (cv2.dilate(nalez.astype(np.uint8), kruh(3)) > 0) & ~nalez
+    okolie = rozsir_masku(nalez, kruh(3)) & ~nalez
     if not okolie.any():
         return False
     vnutri = jas[nalez]
@@ -162,8 +167,7 @@ def kontrast_s_okolim(nalez, box, strana):
     X0, Y0, X1, Y1 = max(0, x0 - g - 3), max(0, y0 - g - 3), min(w, x1 + g + 3), min(h, y1 + g + 3)
     velky = np.zeros((Y1 - Y0, X1 - X0), np.uint8)
     velky[y0 - Y0:y1 - Y0, x0 - X0:x1 - X0] = nalez
-    pas = ((cv2.dilate(velky, kruh(g + 3)) > 0) & ~(cv2.dilate(velky, kruh(g)) > 0)
-           & (strana.maska[Y0:Y1, X0:X1] > 0))
+    pas = rozsir_masku(velky, kruh(g + 3)) & ~rozsir_masku(velky, kruh(g)) & (strana.maska[Y0:Y1, X0:X1] > 0)
     if not pas.any():
         return 0.0
     lab = strana.lab[Y0:Y1, X0:X1]
@@ -231,7 +235,7 @@ def skvrna_na_tlaci(kusok, nalez, farba, ocakavana, jas, min_plocha):
         return False
 
     g = max(KUSOK_OKOLIE_MIN, int(KUSOK_OKOLIE * np.sqrt(plocha)))
-    okolie = (cv2.dilate(np.pad(kusok.astype(np.uint8), g), kruh(g))[g:-g, g:-g] > 0) & nalez
+    okolie = rozsir_masku(np.pad(kusok, g), kruh(g))[g:-g, g:-g] & nalez
     if plocha < SKVRNA_NA_TLACI * okolie.sum():
         return False
 
@@ -244,8 +248,7 @@ def skvrna_na_tlaci(kusok, nalez, farba, ocakavana, jas, min_plocha):
 
 
 def sirka_okraja(jas, oblast):
-    oblast_u8 = oblast.astype(np.uint8)
-    okolie = (cv2.dilate(oblast_u8, kruh(6)) > 0) & ~(cv2.dilate(oblast_u8, kruh(2)) > 0)
+    okolie = rozsir_masku(oblast, kruh(6)) & ~rozsir_masku(oblast, kruh(2))
     if not okolie.any():
         return np.inf
     kontrast = float(np.median(jas[okolie]) - np.percentile(jas[oblast], 10))
