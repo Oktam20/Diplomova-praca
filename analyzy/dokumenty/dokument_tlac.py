@@ -1,5 +1,12 @@
+"""Odstránenie textu, odhad farby papiera a mapa tlače (ilustrácie a plná tlač) na fotke strany.
+
+Morfológia ide cez skvrny.morfologia a blackhat sa počíta na 8-bitovom jase – rovnaké
+spracovanie ako v aplikácii (app/python), výsledok je rovnaký ako s cv2.morphologyEx.
+"""
 import cv2
 import numpy as np
+
+from skvrny.morfologia import rozsir_masku, uzavri, uzavri_masku, zuz_masku
 
 OKNO_TEXTU = 2.5
 TEXT_K = 6.0
@@ -17,6 +24,9 @@ TMAVE_POZADIE = 10.0
 
 ODHAD_STRANA = 400
 OKNO_PAPIERA = 4
+
+JAS_Z_8BIT = np.arange(256, dtype=np.float32)
+JAS_Z_8BIT *= 100.0 / 255.0
 
 
 def neparne(x):
@@ -49,8 +59,7 @@ def gradient_jasu(jas):
 
 
 def okrajovy_pas(oblast, sirka=2):
-    oblast = oblast.astype(np.uint8)
-    return (cv2.dilate(oblast, kruh(sirka)) > 0) & ~(cv2.erode(oblast, kruh(sirka)) > 0)
+    return rozsir_masku(oblast, kruh(sirka)) & ~zuz_masku(oblast, kruh(sirka))
 
 
 def okolo(udaje, okraj, rozmer):
@@ -85,7 +94,7 @@ def maska_strany(obrazok):
     cv2.drawContours(strana, obrysy, -1, 255, cv2.FILLED)
     if not 0.2 <= strana.mean() / 255 <= 0.97:
         strana[:] = 255
-    return cv2.erode(strana, kruh(max(h, w) / 80))
+    return zuz_masku(strana, kruh(max(h, w) / 80)).astype(np.uint8) * 255
 
 
 def hrubka_tahu(obrazok, strana):
@@ -109,7 +118,8 @@ def odstran_text(obrazok, lab, strana):
     jas = lab[..., 0]
     hrubka = hrubka_tahu(obrazok, strana)
     polomer = max(2, int(round(OKNO_TEXTU * hrubka)))
-    blackhat = cv2.morphologyEx(jas, cv2.MORPH_CLOSE, kruh(polomer)) - jas
+    jas8 = cv2.cvtColor(obrazok, cv2.COLOR_BGR2LAB)[..., 0]
+    blackhat = JAS_Z_8BIT[uzavri(jas8, kruh(polomer))] - jas
 
     hodnoty = blackhat[strana > 0]
     median = float(np.median(hodnoty))
@@ -117,14 +127,12 @@ def odstran_text(obrazok, lab, strana):
     prah = max(TEXT_MIN, median + TEXT_K * mad)
     atrament = hystereza((blackhat > 0.5 * prah) & (strana > 0), (blackhat > prah) & (strana > 0))
 
-    s_lemom = cv2.dilate(atrament.astype(np.uint8) * 255, kruh(max(1, hrubka * 0.6)))
+    s_lemom = rozsir_masku(atrament, kruh(max(1, hrubka * 0.6))).astype(np.uint8) * 255
     return vypln_pozadie(obrazok, s_lemom, polomer), s_lemom, polomer, atrament
 
 
 def vypln_pozadie(obrazok, diery, polomer):
-    jadro = kruh(polomer)
-    pozadie = np.dstack([cv2.morphologyEx(obrazok[..., k], cv2.MORPH_CLOSE, jadro) for k in range(3)])
-    pozadie = cv2.GaussianBlur(pozadie, (0, 0), max(1.0, polomer / 2))
+    pozadie = cv2.GaussianBlur(uzavri(obrazok, kruh(polomer)), (0, 0), max(1.0, polomer / 2))
     okno = neparne(4 * polomer + 1)
     hustota = cv2.blur((diery > 0).astype(np.float32), (okno, okno))
     nahradit = (diery > 0) | (hustota > HUSTY_TEXT)
@@ -141,7 +149,7 @@ def odhad_papiera(obrazok, vynechat, strana):
     vynechane = cv2.resize(vynechat, velkost, interpolation=cv2.INTER_NEAREST)
     na_strane = cv2.resize(strana, velkost, interpolation=cv2.INTER_NEAREST) > 0
 
-    male = cv2.inpaint(male, cv2.dilate(vynechane, kruh(1)), 3, cv2.INPAINT_TELEA)
+    male = cv2.inpaint(male, rozsir_masku(vynechane, kruh(1)).astype(np.uint8), 3, cv2.INPAINT_TELEA)
     dobre = na_strane & (vynechane == 0)
     if dobre.any():
         male[~na_strane] = np.median(male[dobre], axis=0).astype(np.uint8)
@@ -163,7 +171,7 @@ def mapa_ilustracii(atrament, strana):
     if not mapa.any():
         return np.zeros(atrament.shape, bool)
 
-    mapa = cv2.morphologyEx(mapa, cv2.MORPH_CLOSE, kruh(max(2, pismeno)))
+    mapa = uzavri_masku(mapa, kruh(max(2, pismeno))).astype(np.uint8)
     obrysy, _ = cv2.findContours(mapa, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     vyplnena = np.zeros_like(mapa)
     cv2.drawContours(vyplnena, obrysy, -1, 1, cv2.FILLED)
@@ -191,11 +199,17 @@ def plna_tlac(lab, papier, strana, pismeno):
     return vysledok
 
 
-def mapa_tlace(povodny, rozmer):
+def priprav_stranu(obrazok):
+    """Lab, maska strany a odstránenie textu – spoločný začiatok mapy tlače aj návrhu miest."""
+    lab = na_lab(obrazok)
+    strana = maska_strany(obrazok)
+    return lab, strana, odstran_text(obrazok, lab, strana)
+
+
+def mapa_tlace(povodny, rozmer, priprava=None):
     f = min(1.0, TLAC_STRANA / max(povodny.shape[:2]))
     obrazok = cv2.resize(povodny, None, fx=f, fy=f, interpolation=cv2.INTER_AREA) if f < 1 else povodny
-    strana = maska_strany(obrazok)
-    bez_textu, _, _, ciary = odstran_text(obrazok, na_lab(obrazok), strana)
+    _, strana, (bez_textu, _, _, ciary) = priprava or priprav_stranu(obrazok)
     lab_bez_textu = na_lab(bez_textu)
 
     pocet, _, udaje, _ = cv2.connectedComponentsWithStats(ciary.astype(np.uint8))
@@ -205,5 +219,5 @@ def mapa_tlace(povodny, rozmer):
     tmave_pozadie = lab_bez_textu[..., 0] < papier[..., 0] - TMAVE_POZADIE
     mapa = (mapa_ilustracii(ciary & ~tmave_pozadie, strana)
             | plna_tlac(lab_bez_textu, papier, strana, pismeno))
-    mapa = cv2.dilate(mapa.astype(np.uint8), kruh(max(2, pismeno)))
+    mapa = rozsir_masku(mapa, kruh(max(2, pismeno))).astype(np.uint8)
     return cv2.resize(mapa, (rozmer[1], rozmer[0]), interpolation=cv2.INTER_AREA) > 0

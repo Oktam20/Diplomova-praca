@@ -27,6 +27,7 @@ python -m skvrny.vyber_kanalov --fotky images/D2 --rucne images/D2masks
 | súbor | čo robí | dokumentácia |
 |---|---|---|
 | `maska.py` | algoritmus hľadania masky | [docs/maska.md](docs/maska.md) |
+| `morfologia.py` | dilatácia / erózia s eliptickým jadrom (rovnaký výsledok ako OpenCV, rýchlejšie; používa ju aj aplikácia) | – |
 | `vytvor_masky.py` | masky pre celý priečinok fotiek | [docs/maska.md](docs/maska.md) |
 | `rozdelenie.py` | rozdelenie fotiek na train / test | [docs/rozdelenie.md](docs/rozdelenie.md) |
 | `vyhodnotenie.py` | porovnanie s ručnými maskami, grafy | [docs/vyhodnotenie.md](docs/vyhodnotenie.md) |

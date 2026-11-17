@@ -29,6 +29,19 @@ Všetky príkazy nižšie sa spúšťajú **z priečinka `analyzy/`** ako moduly
 ## Celý postup naraz
 
 ```
+bash spusti_analyzy.sh             # všetky kroky
+bash spusti_analyzy.sh skvrny      # len časť 1
+bash spusti_analyzy.sh dokumenty   # len časť 2
+```
+
+Skript spustí kroky nižšie postupne a všetko uloží do vlastného priečinka `behy/<dátum_čas>/`
+(masky, tabuľky, grafy, strany) spolu so záznamom `beh.log` – čo ktorý krok vypísal, ako dlho
+trval a na konci súhrn. Doterajšie výsledky v `skvrny/vysledky/`, `images/D2/masky/` a
+`dokumenty/vysledky/` sa neprepíšu.
+
+Jednotlivo (výstupy idú do predvolených priečinkov):
+
+```
 python -m skvrny.vytvor_masky images/D2
 python -m skvrny.rozdelenie images/D2
 python -m skvrny.vyhodnotenie --masky images/D2/masky --rucne images/D2masks --fotky images/D2

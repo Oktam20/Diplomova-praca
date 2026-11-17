@@ -2,15 +2,18 @@ import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-import type { Poziadavka } from './postup';
+import type { Poziadavka } from './webview-worker';
 import { KOD_WORKERA } from './webview-worker.generated';
 
-type Odpoved = { pripraveny?: boolean; id?: number; ok?: boolean; vysledok?: unknown; chyba?: string };
+type Odpoved = { pripraveny?: boolean; chybaStartu?: string; id?: number; ok?: boolean; vysledok?: unknown; chyba?: string };
 type Caka = { splnene: (vysledok: unknown) => void; zlyhalo: (chyba: Error) => void };
+
+const CAKAT_NA_PYTHON = 180_000;
 
 let webview: WebView | null = null;
 let pripraveny = false;
-let poPriprave: (() => void)[] = [];
+let chybaStartu: string | null = null;
+let poStarte: (() => void)[] = [];
 let dalsieId = 1;
 const cakajuce = new Map<number, Caka>();
 
@@ -19,6 +22,9 @@ const HTML =
   KOD_WORKERA.replace(/<\/script/gi, '<\\/script') +
   '</script></body></html>';
 
+/** Či je Python vo WebView už načítaný (prvé načítanie trvá dlhšie). */
+export const pythonPripraveny = () => pripraveny;
+
 function zrusVsetky(sprava: string) {
   for (const c of cakajuce.values()) c.zlyhalo(new Error(sprava));
   cakajuce.clear();
@@ -26,6 +32,7 @@ function zrusVsetky(sprava: string) {
 
 function restartuj(view: WebView | null) {
   pripraveny = false;
+  chybaStartu = null;
   zrusVsetky('Výpočet vo WebView bol prerušený (nedostatok pamäte?) – skús to znova.');
   view?.reload();
 }
@@ -37,9 +44,10 @@ function naSpravu(event: WebViewMessageEvent) {
   } catch {
     return;
   }
-  if (odpoved.pripraveny) {
-    pripraveny = true;
-    for (const f of poPriprave.splice(0)) f();
+  if (odpoved.pripraveny || odpoved.chybaStartu) {
+    pripraveny = !!odpoved.pripraveny;
+    chybaStartu = odpoved.chybaStartu ?? null;
+    for (const f of poStarte.splice(0)) f();
     return;
   }
   const caka = odpoved.id !== undefined ? cakajuce.get(odpoved.id) : undefined;
@@ -49,7 +57,7 @@ function naSpravu(event: WebViewMessageEvent) {
   else caka.zlyhalo(new Error(odpoved.chyba ?? 'Výpočet vo WebView zlyhal.'));
 }
 
-/** Skrytý WebView, v ktorom bežia výpočty (JavaScript s JIT je niekoľkonásobne rýchlejší ako Hermes). */
+/** Skrytý WebView, v ktorom beží Python s analýzami (Pyodide). Načíta sa hneď pri štarte aplikácie. */
 export function VypoctovyWebView() {
   const ref = useRef<WebView>(null);
   useEffect(() => {
@@ -75,19 +83,25 @@ export function VypoctovyWebView() {
   );
 }
 
-/** Pošle výpočet do WebView; null, ak WebView nie je do `cakat` ms pripravený. */
-export async function vypocitajVoWebView<T>(poziadavka: Poziadavka, cakat = 3000): Promise<T | null> {
-  if (!webview) return null;
-  if (!pripraveny) {
-    const stihol = await new Promise<boolean>((resolve) => {
-      const casovac = setTimeout(() => resolve(false), cakat);
-      poPriprave.push(() => {
-        clearTimeout(casovac);
-        resolve(true);
-      });
+/** Počká, kým sa vo WebView načíta Python; po chybe pri štarte ho skúsi načítať znova. */
+async function pockajNaPython(): Promise<void> {
+  if (chybaStartu) restartuj(webview);
+  if (pripraveny) return;
+  const stihol = await new Promise<boolean>((resolve) => {
+    const casovac = setTimeout(() => resolve(false), CAKAT_NA_PYTHON);
+    poStarte.push(() => {
+      clearTimeout(casovac);
+      resolve(true);
     });
-    if (!stihol || !webview) return null;
-  }
+  });
+  if (chybaStartu) throw new Error(chybaStartu);
+  if (!stihol) throw new Error('Python sa nenačítal včas – skontroluj internet a skús to znova.');
+}
+
+/** Pošle výpočet do WebView a vráti jeho výsledok. */
+export async function vypocitajVoWebView<T>(poziadavka: Poziadavka): Promise<T> {
+  if (!webview) throw new Error('Výpočtový WebView nie je spustený.');
+  await pockajNaPython();
   const id = dalsieId++;
   return new Promise<T>((splnene, zlyhalo) => {
     cakajuce.set(id, { splnene: splnene as (vysledok: unknown) => void, zlyhalo });

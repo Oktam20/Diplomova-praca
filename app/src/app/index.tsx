@@ -9,6 +9,7 @@ import { Ikona } from '@/komponenty/ikona';
 import { Prepinac } from '@/komponenty/prepinac';
 import { orezNaVodidlo, Vodidlo } from '@/komponenty/vodidlo';
 import { prevezmiNovySken, ulozVysledok } from '@/vypocty/vysledok-skenu';
+import { pythonPripraveny } from '@/vypocty/webview';
 import { najdiNaDokumente, najdiNaObrazku, urciDruh, type Detekcia } from '@/vypocty/zariadenie';
 import { FARBY, MEDZERA } from '@/vzhlad';
 
@@ -62,8 +63,8 @@ export default function Skenovanie() {
     try {
       const d = rezim === 'dokument' ? await najdiNaDokumente(uri) : await najdiNaObrazku(uri);
       setDetekcia(d);
-      setSprava(d.podklad ? d.sprava : (d.sprava ?? 'Maska sa nevytvorila.'));
-      setStav(!d.podklad || (d.sprava && rezim === 'obrazok') ? 'varovanie' : 'hotovo');
+      setSprava(d.podklad !== null ? d.sprava : (d.sprava ?? 'Maska sa nevytvorila.'));
+      setStav(d.podklad === null || (d.sprava && rezim === 'obrazok') ? 'varovanie' : 'hotovo');
     } catch (chyba) {
       setSprava(chyba instanceof Error ? chyba.message : 'Spracovanie v zariadení zlyhalo.');
       setStav('chyba');
@@ -71,7 +72,7 @@ export default function Skenovanie() {
   }
 
   async function urci() {
-    if (!detekcia?.podklad) return;
+    if (detekcia?.podklad == null) return;
     setStav('urcuje');
     setSprava(null);
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -143,6 +144,7 @@ export default function Skenovanie() {
                 <View style={[StyleSheet.absoluteFill, styles.pocitanie]}>
                   <ActivityIndicator color={FARBY.biela} size="large" />
                   <Text style={styles.textPocitania}>{stav === 'urcuje' ? 'Klasifikuje sa…' : 'Spracúva sa…'}</Text>
+                  {!pythonPripraveny() && <Text style={styles.textVyzvy}>Načítava sa Python – prvé spustenie môže trvať aj minútu.</Text>}
                 </View>
               )}
             </View>

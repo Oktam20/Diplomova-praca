@@ -28,8 +28,8 @@ def kandidati_fotky(uloha):
     ]
 
 
-def nacitaj_kandidatov(fotky, rucne, znova):
-    subor = VYSLEDKY / "kandidati.csv"
+def nacitaj_kandidatov(fotky, rucne, znova, vystup=VYSLEDKY):
+    subor = vystup / "kandidati.csv"
     
     if subor.exists() and not znova:
         return pd.read_csv(subor)
@@ -134,21 +134,23 @@ def main():
     parser.add_argument("--fotky", type=Path, required=True)
     parser.add_argument("--rucne", type=Path, required=True)
     parser.add_argument("--znova", action="store_true", help="prepočítať kandidátov aj keď sú uložení")
+    parser.add_argument("--vystup", type=Path, default=VYSLEDKY, help="kam uložiť kandidátov, tabuľky a grafy")
     args = parser.parse_args()
 
-    VYSLEDKY.mkdir(exist_ok=True)
-    tabulka = nacitaj_kandidatov(args.fotky, args.rucne, args.znova)
+    vystup = args.vystup
+    vystup.mkdir(parents=True, exist_ok=True)
+    tabulka = nacitaj_kandidatov(args.fotky, args.rucne, args.znova, vystup)
 
     vitazi = vybrane(tabulka, VSETKY_KANALY, list(METODY))
     print(f"Všetky kanály × metódy: priemerný Dice {vitazi.dice.mean():.3f}")
     print(vitazi.kanal.value_counts().to_string())
-    graf_vyhry(vitazi, VYSLEDKY / "vyhry_kanalov_a_metod.png")
+    graf_vyhry(vitazi, vystup / "vyhry_kanalov_a_metod.png")
 
     bez_jasovych = [k for k in VSETKY_KANALY if k not in JASOVE_KANALY]
     kroky = vylucovanie(tabulka, bez_jasovych, list(METODY))
-    kroky.to_csv(VYSLEDKY / "vylucovanie.csv", index=False)
+    kroky.to_csv(vystup / "vylucovanie.csv", index=False)
     profily = zvol_profily(kroky)
-    graf_vylucovanie(kroky, profily, VYSLEDKY / "vylucovanie.png")
+    graf_vylucovanie(kroky, profily, vystup / "vylucovanie.png")
 
     print()
     print(kroky[["odobrate", "kanalov", "metod", "dice"]].round(4).to_string(index=False))
