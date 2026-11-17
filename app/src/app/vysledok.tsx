@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ikona } from '@/komponenty/ikona';
 import { KartaSkvrny } from '@/komponenty/karta-skvrny';
 import { Prepinac } from '@/komponenty/prepinac';
-import { OVERENIE_KLUCA } from '@/vypocty/kluc';
 import { nacitajVysledok, poziadajONovySken } from '@/vypocty/vysledok-skenu';
 import { FARBY, MEDZERA } from '@/vzhlad';
 
@@ -68,7 +67,8 @@ export default function Vysledok() {
           )}
 
           <Text style={styles.poznamka}>
-            Overenie kľúča po kartičkách {Math.round(OVERENIE_KLUCA * 100)} % · spracovanie {desatinne(vysledok.trvanie / 1000)} s
+            {vysledok.uspesnostKluca !== undefined && `Úspešnosť kľúča na testovacích fotkách ${Math.round(vysledok.uspesnostKluca * 100)} % · `}
+            spracovanie {desatinne(vysledok.trvanie / 1000)} s
           </Text>
           <Text style={styles.poznamka}>
             Farebný profil fotky: {vysledok.profil ?? 'neuvedený (berie sa ako sRGB)'}

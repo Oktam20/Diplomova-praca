@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { nazovDruhu, type Skvrna } from '@/vypocty/kluc';
+import type { Skvrna } from '@/vypocty/vysledok-skenu';
 import { FARBY, MEDZERA } from '@/vzhlad';
 
 const FARBA_SKUPINY: Record<string, string> = { tmave: '#8a5a2b', svetle: '#e2b93b' };
@@ -26,7 +26,7 @@ export function KartaSkvrny({ skvrna }: { skvrna: Skvrna }) {
           {druh ? (
             <>
               <Text style={styles.urcenyNadpis}>Určený druh</Text>
-              <Text style={styles.urcenyDruh}>{nazovDruhu(druh)}</Text>
+              <Text style={styles.urcenyDruh}>{druh}</Text>
               <Text style={styles.drobny}>
                 {nazov}
                 {podskupina ? ` → ${podskupina}` : ''}
@@ -77,7 +77,7 @@ export function KartaSkvrny({ skvrna }: { skvrna: Skvrna }) {
           <Text style={styles.nadpisZoznamu}>Druh zatiaľ neurčený – možné druhy</Text>
           {druhy.map((d) => (
             <Text key={d} style={styles.mozny}>
-              {nazovDruhu(d)}
+              {d}
             </Text>
           ))}
         </View>

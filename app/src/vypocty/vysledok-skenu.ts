@@ -1,4 +1,26 @@
-import type { Skvrna } from './kluc';
+/** Požiadavka na výpočet v Pythone (obrázky ako PNG v base64). */
+export type Poziadavka = { druh: 'obrazok'; png: string } | { druh: 'dokument'; png: string } | { druh: 'urci'; podklad: number };
+
+type Spolocne = { sirka: number; vyska: number; profil?: string; maska: string; vyrez: string; podklad?: number };
+export type VysledokObrazka = Spolocne;
+export type VysledokDokumentu = Spolocne & { prehlad: string; miest: number; nasiel: boolean };
+
+/** Jedna otázka kľúča na ceste k výsledku. */
+export type KrokCesty = { otazka: string; popis: string; vysledok: string };
+
+export type Urcenie = {
+  skupina?: 'tmave' | 'svetle' | 'neiste';
+  nazov: string;
+  podskupina?: string;
+  druhy: string[];
+  druh?: string;
+  cesta: KrokCesty[];
+};
+
+/** Určená škvrna: názov (Škvrna, Škvrna 2, ...), výsledok kľúča a obrázok čŕt (PNG base64). */
+export type Skvrna = { nazov: string; urcenie: Urcenie; obrazok?: string };
+
+export type VysledokUrcenia = { skvrny: Skvrna[]; uspesnost?: number };
 
 /** Výsledok skenu, ktorý si obrazovka Výsledok prevezme od obrazovky skenovania. */
 export type VysledokSkenu = {
@@ -7,6 +29,7 @@ export type VysledokSkenu = {
   maskaUri: string | null;
   vyrezUri: string | null;
   skvrny: Skvrna[];
+  uspesnostKluca?: number;
   profil: string | null;
   trvanie: number;
 };

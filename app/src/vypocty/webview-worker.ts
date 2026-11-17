@@ -1,32 +1,32 @@
-import dokument from '../../../analyzy/dokumenty/dokument.py';
-import dokumentMiesta from '../../../analyzy/dokumenty/dokument_miesta.py';
-import dokumentTlac from '../../../analyzy/dokumenty/dokument_tlac.py';
-import maska from '../../../analyzy/skvrny/maska.py';
-import subory from '../../../analyzy/skvrny/subory.py';
-import aplikacia from './aplikacia.py';
-import { urciFotku, urciVyrezy, type Skvrna } from './kluc';
-import type { Obrazok } from './obrazok';
+import aplikacia from '../../python/aplikacia.py';
+import dokument from '../../python/dokumenty/dokument.py';
+import dokumentMiesta from '../../python/dokumenty/dokument_miesta.py';
+import dokumentTlac from '../../python/dokumenty/dokument_tlac.py';
+import crty from '../../python/klasifikacia/crty.py';
+import kluc from '../../python/klasifikacia/kluc.json';
+import klucPy from '../../python/klasifikacia/kluc.py';
+import maska from '../../python/skvrny/maska.py';
+import morfologia from '../../python/skvrny/morfologia.py';
+import type { Poziadavka } from './vysledok-skenu';
 
 const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.28.3/full/';
 const BALIKY = ['numpy', 'opencv-python', 'scikit-image'];
 
-/** Python súbory analýz, ktoré sa nahrajú do Pyodide (cesta -> obsah). */
+/** Python súbory z app/python, ktoré sa nahrajú do Pyodide (cesta -> obsah). */
 const PYTHON: Record<string, string> = {
   'skvrny/__init__.py': '',
   'skvrny/maska.py': maska,
-  'skvrny/subory.py': subory,
+  'skvrny/morfologia.py': morfologia,
   'dokumenty/__init__.py': '',
   'dokumenty/dokument.py': dokument,
   'dokumenty/dokument_tlac.py': dokumentTlac,
   'dokumenty/dokument_miesta.py': dokumentMiesta,
+  'klasifikacia/__init__.py': '',
+  'klasifikacia/crty.py': crty,
+  'klasifikacia/kluc.py': klucPy,
+  'klasifikacia/kluc.json': JSON.stringify(kluc),
   'aplikacia.py': aplikacia,
 };
-
-export type Poziadavka = { druh: 'obrazok'; png: string } | { druh: 'dokument'; png: string } | { druh: 'urci'; podklad: number };
-
-type Spolocne = { sirka: number; vyska: number; profil: string | null; maska: string; vyrez: string; podklad: number | null };
-export type VysledokObrazka = Spolocne;
-export type VysledokDokumentu = Spolocne & { prehlad: string; miest: number; nasiel: boolean };
 
 type PyProxy = any;
 type Posluchac = (event: { data?: unknown }) => void;
@@ -63,64 +63,17 @@ async function spustiPython(): Promise<PyProxy> {
   return py.pyimport('aplikacia');
 }
 
-/** numpy pole z Pythonu skopírované do obrázka v JavaScripte. */
-function pole(proxy: PyProxy): Obrazok {
-  const buffer = proxy.getBuffer('u8');
-  const obr = { vyska: buffer.shape[0], sirka: buffer.shape[1], data: buffer.data.slice() };
-  buffer.release();
+/** Slovník z Pythonu ako objekt v JavaScripte. */
+function naObjekt(proxy: PyProxy): unknown {
+  const objekt = proxy.toJs({ dict_converter: Object.fromEntries });
   proxy.destroy();
-  return obr;
+  return objekt;
 }
 
-/** Podklad pre určenie druhu z posledných troch skenov (obrázok s maskou alebo výrezy škvŕn). */
-type Podklad = { obrazok: Obrazok; maska: Uint8Array } | { vyrezy: { cislo: number; obrazok: Obrazok; maska: Uint8Array }[] };
-const podklady = new Map<number, Podklad>();
-let dalsiPodklad = 1;
-
-function uloz(podklad: Podklad): number {
-  const cislo = dalsiPodklad++;
-  podklady.set(cislo, podklad);
-  while (podklady.size > 3) podklady.delete(podklady.keys().next().value!);
-  return cislo;
-}
-
-function spolocne(v: PyProxy) {
-  return { sirka: v.get('sirka'), vyska: v.get('vyska'), profil: v.get('profil') ?? null, maska: v.get('maska_png'), vyrez: v.get('vyrez_png') };
-}
-
-async function spracuj(app: PyProxy, p: Poziadavka): Promise<VysledokObrazka | VysledokDokumentu | Skvrna[]> {
-  if (p.druh === 'urci') {
-    const podklad = podklady.get(p.podklad);
-    if (!podklad) throw new Error('Podklad pre klasifikáciu už nie je k dispozícii – naskenuj vzorku znova.');
-    return 'vyrezy' in podklad ? urciVyrezy(podklad.vyrezy) : urciFotku(podklad.obrazok, podklad.maska);
-  }
-  if (p.druh === 'obrazok') {
-    const v = app.obrazok(p.png);
-    const obr = pole(v.get('obrazok'));
-    const maska = pole(v.get('maska')).data;
-    const vysledok = { ...spolocne(v), podklad: uloz({ obrazok: obr, maska }) };
-    v.destroy();
-    return vysledok;
-  }
-  const v = app.dokument(p.png);
-  const zoznam = v.get('vyrezy');
-  const vyrezy = Array.from({ length: zoznam.length }, (_, k) => {
-    const d = zoznam.get(k);
-    const vyrez = { cislo: k + 1, obrazok: pole(d.get('obrazok')), maska: pole(d.get('maska')).data };
-    d.destroy();
-    return vyrez;
-  });
-  zoznam.destroy();
-  const nasiel: boolean = v.get('nasiel');
-  const vysledok = {
-    ...spolocne(v),
-    prehlad: v.get('prehlad_png'),
-    miest: v.get('miest'),
-    nasiel,
-    podklad: nasiel ? uloz({ vyrezy }) : null,
-  };
-  v.destroy();
-  return vysledok;
+function spracuj(app: PyProxy, p: Poziadavka): unknown {
+  if (p.druh === 'obrazok') return naObjekt(app.obrazok(p.png));
+  if (p.druh === 'dokument') return naObjekt(app.dokument(p.png));
+  return naObjekt(app.urci_podklad(p.podklad));
 }
 
 const python = spustiPython();
@@ -142,10 +95,16 @@ async function naSpravu(event: { data?: unknown }) {
   if (!poziadavka || typeof poziadavka.id !== 'number' || vybavene.has(poziadavka.id)) return;
   vybavene.add(poziadavka.id);
   try {
-    posli({ id: poziadavka.id, ok: true, vysledok: await spracuj(await python, poziadavka) });
+    posli({ id: poziadavka.id, ok: true, vysledok: spracuj(await python, poziadavka) });
   } catch (chyba) {
-    posli({ id: poziadavka.id, ok: false, chyba: chyba instanceof Error ? chyba.message : String(chyba) });
+    posli({ id: poziadavka.id, ok: false, chyba: poslednaVeta(chyba) });
   }
+}
+
+/** Z výpisu chyby Pythonu len posledný riadok bez názvu výnimky. */
+function poslednaVeta(chyba: unknown): string {
+  const text = chyba instanceof Error ? chyba.message : String(chyba);
+  return (text.trim().split('\n').pop() ?? text).replace(/^\w+(Error|Exception): /, '');
 }
 
 hostitel.addEventListener?.('message', naSpravu);

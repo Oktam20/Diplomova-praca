@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-import type { Poziadavka } from './webview-worker';
+import type { Poziadavka } from './vysledok-skenu';
 import { KOD_WORKERA } from './webview-worker.generated';
 
 type Odpoved = { pripraveny?: boolean; chybaStartu?: string; id?: number; ok?: boolean; vysledok?: unknown; chyba?: string };

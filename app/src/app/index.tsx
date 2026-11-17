@@ -77,8 +77,8 @@ export default function Skenovanie() {
     setSprava(null);
     await new Promise((resolve) => setTimeout(resolve, 50));
     try {
-      const skvrny = await urciDruh(detekcia.podklad);
-      ulozVysledok({ ...detekcia, rezim, skvrny });
+      const { skvrny, uspesnost } = await urciDruh(detekcia.podklad);
+      ulozVysledok({ ...detekcia, rezim, skvrny, uspesnostKluca: uspesnost });
       router.push('/vysledok');
     } catch (chyba) {
       setSprava(chyba instanceof Error ? chyba.message : 'Klasifikácia zlyhala.');

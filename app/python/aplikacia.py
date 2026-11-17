@@ -1,19 +1,40 @@
-"""Prepojenie aplikácie s analýzami: fotka z mobilu -> maska, výrezy a obrázky na zobrazenie.
+"""Prepojenie aplikácie s analýzami: fotka z mobilu -> maska, výrezy, určenie druhu a obrázky na zobrazenie.
 
-Beží v mobile v Pyodide a volá rovnaké funkcie ako analýzy (skvrny.maska, dokumenty.dokument).
+Beží v mobile v Pyodide a volá rovnaké funkcie ako analýzy (skvrny.maska, dokumenty.dokument,
+klasifikacia). Výsledky vracia ako slovníky s textom a číslami, obrázky ako PNG v base64.
 """
 import base64
+import json
 import re
 import zlib
+from pathlib import Path
 
 import cv2
 import numpy as np
 
 from dokumenty.dokument import spracuj_stranu, vyrezy
+from klasifikacia.crty import crty_skvrny, gabor
+from klasifikacia.kluc import urci
 from skvrny.maska import najdi_masku
 
+KLUC = json.loads((Path(__file__).parent / "klasifikacia" / "kluc.json").read_text(encoding="utf-8"))
 ZLTA = (0, 220, 255)
 CERVENA = (0, 0, 255)
+FARBY_ZON = [(244, 197, 158), (236, 167, 109), (229, 135, 57), (149, 79, 24)]
+FARBA_LEMU = (42, 134, 232)
+FARBA_OBRYSU = (59, 59, 208)
+FARBA_VYNECHANEHO = (128, 128, 128)
+
+podklady = {}
+
+
+def uloz_podklad(skvrny):
+    """Fotky a masky škvŕn na určenie druhu (posledné tri skeny); vráti číslo podkladu."""
+    cislo = max(podklady, default=0) + 1
+    podklady[cislo] = skvrny
+    for stare in sorted(podklady)[:-3]:
+        del podklady[stare]
+    return cislo
 
 
 def farebny_profil(png):
@@ -83,10 +104,9 @@ def obrazok(png_base64):
         "sirka": obr.shape[1],
         "vyska": obr.shape[0],
         "profil": profil,
-        "obrazok": obr,
-        "maska": maska,
-        "maska_png": na_png(maska),
-        "vyrez_png": na_png(len_pod_maskou(obr, maska)),
+        "maska": na_png(maska),
+        "vyrez": na_png(len_pod_maskou(obr, maska)),
+        "podklad": uloz_podklad([("Škvrna", obr, maska)]),
     }
 
 
@@ -111,14 +131,69 @@ def dokument(png_base64):
     povodny, profil = nacitaj(png_base64)
     maska, navrh, strana = spracuj_stranu(povodny)
     skvrny = list(vyrezy(strana, maska))
+    nasiel = bool(maska.any())
+    podklad = [(f"Škvrna {cislo}", vyrez, maska_vyrezu) for cislo, (_, _, vyrez, maska_vyrezu) in enumerate(skvrny, 1)]
     return {
         "sirka": strana.obrazok.shape[1],
         "vyska": strana.obrazok.shape[0],
         "profil": profil,
         "miest": cv2.connectedComponents(navrh)[0] - 1,
-        "nasiel": bool(maska.any()),
-        "vyrezy": [{"obrazok": vyrez, "maska": maska_vyrezu} for _, _, vyrez, maska_vyrezu in skvrny],
-        "prehlad_png": na_png(prehlad(strana.obrazok, maska, [box for _, box, _, _ in skvrny])),
-        "maska_png": na_png(maska),
-        "vyrez_png": na_png(len_pod_maskou(strana.bez_textu, maska)),
+        "nasiel": nasiel,
+        "prehlad": na_png(prehlad(strana.obrazok, maska, [box for _, box, _, _ in skvrny])),
+        "maska": na_png(maska),
+        "vyrez": na_png(len_pod_maskou(strana.bez_textu, maska)),
+        "podklad": uloz_podklad(podklad) if nasiel else None,
     }
+
+
+def obrazok_crt(obr, maska, podklady_crt, max_strana=360):
+    """Obrázok čŕt: zóny škvrny od okraja k stredu, lem, vynechané okolie a obrys (PNG base64)."""
+    vnutri = maska > 0
+    ys, xs = np.nonzero(vnutri | podklady_crt["lem"])
+    okraj = round(0.35 * max(np.ptp(xs), np.ptp(ys))) + 8
+    h, w = maska.shape
+    y0, y1 = max(0, ys.min() - okraj), min(h, ys.max() + okraj + 1)
+    x0, x1 = max(0, xs.min() - okraj), min(w, xs.max() + okraj + 1)
+
+    vysledok = obr.astype(np.float32)
+
+    def zmiesaj(vyber, farba):
+        vysledok[vyber] = 0.5 * vysledok[vyber] + 0.5 * np.array(farba)
+
+    for z, farba in enumerate(FARBY_ZON):
+        zmiesaj(vnutri & (podklady_crt["zony"] == z), farba)
+    zmiesaj(~vnutri & podklady_crt["lem"], FARBA_LEMU)
+    zmiesaj(~vnutri & ~podklady_crt["lem"] & ~podklady_crt["papier"], FARBA_VYNECHANEHO)
+    s_okrajom = np.pad(vnutri, 1).astype(np.uint8)
+    obrys = vnutri & ~(cv2.erode(s_okrajom, cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3)))[1:-1, 1:-1] > 0)
+    vysledok[obrys] = FARBA_OBRYSU
+
+    vyrez = np.round(vysledok[y0:y1, x0:x1]).astype(np.uint8)
+    f = min(1.0, max_strana / max(vyrez.shape[:2]))
+    if f < 1:
+        vyrez = cv2.resize(vyrez, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    return na_png(vyrez)
+
+
+def urci_skvrnu(nazov, obr, maska):
+    vysledok = crty_skvrny(obr, maska, s_texturou=False)
+    if vysledok is None:
+        return None
+    crty, podklady_crt = vysledok
+    urcenie = urci(crty, KLUC, lambda: gabor(*podklady_crt["vyrez"]))
+    druhy = KLUC["druhy"]
+    urcenie["druhy"] = [druhy[d] for d in urcenie["druhy"]]
+    urcenie["druh"] = druhy.get(urcenie["druh"])
+    try:
+        obrazok_skvrny = obrazok_crt(obr, maska, podklady_crt)
+    except ValueError:
+        obrazok_skvrny = None
+    return {"nazov": nazov, "urcenie": urcenie, "obrazok": obrazok_skvrny}
+
+
+def urci_podklad(cislo):
+    """Určenie druhu každej škvrny zo skenu (podklad z funkcie obrazok alebo dokument)."""
+    if cislo not in podklady:
+        raise ValueError("Podklad pre klasifikáciu už nie je k dispozícii – naskenuj vzorku znova.")
+    skvrny = [urci_skvrnu(*skvrna) for skvrna in podklady[cislo]]
+    return {"skvrny": [s for s in skvrny if s], "uspesnost": KLUC.get("uspesnost", {}).get("test")}
