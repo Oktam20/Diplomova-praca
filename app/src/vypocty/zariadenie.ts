@@ -1,13 +1,11 @@
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
-import type { Skvrna } from './kluc';
-import { zaokruhli } from './obrazok';
+import type { VysledokDokumentu, VysledokObrazka, VysledokUrcenia } from './vysledok-skenu';
 import { vypocitajVoWebView } from './webview';
-import type { VysledokDokumentu, VysledokObrazka } from './webview-worker';
 
-/** Dlhšia strana fotky: ako max_strana v najdi_masku a TLAC_STRANA v dokument_tlac.py. */
+/** Dlhšia strana fotky: ako max_strana v najdi_masku a TLAC_STRANA v python/dokumenty/dokument_tlac.py. */
 const STRANA_OBRAZKA = 1200;
-const STRANA_DOKUMENTU = 3200;
+const STRANA_DOKUMENTU = 2400;
 
 export type Detekcia = {
   sprava: string | null;
@@ -24,7 +22,7 @@ async function zmensenaFotka(uri: string, strana: number) {
   const povodna = await ImageManipulator.manipulate(uri).renderAsync();
   const f = Math.min(1, strana / Math.max(povodna.width, povodna.height));
   const kontext = ImageManipulator.manipulate(uri);
-  if (f < 1) kontext.resize({ width: zaokruhli(povodna.width * f), height: zaokruhli(povodna.height * f) });
+  if (f < 1) kontext.resize({ width: Math.round(povodna.width * f), height: Math.round(povodna.height * f) });
   const ulozena = await (await kontext.renderAsync()).saveAsync({ format: SaveFormat.PNG, base64: true });
   if (!ulozena.base64) throw new Error('Nepodarilo sa načítať pixely obrázka.');
   return { base64: ulozena.base64, uri: ulozena.uri };
@@ -50,8 +48,8 @@ export async function najdiNaObrazku(uri: string): Promise<Detekcia> {
     obrazokUri: fotka.uri,
     maskaUri: dataUri(v.maska),
     vyrezUri: dataUri(v.vyrez),
-    podklad: v.podklad,
-    profil: v.profil,
+    podklad: v.podklad ?? null,
+    profil: v.profil ?? null,
     trvanie: Date.now() - zaciatok,
   };
 }
@@ -71,13 +69,16 @@ export async function najdiNaDokumente(uri: string): Promise<Detekcia> {
     obrazokUri: dataUri(v.prehlad),
     maskaUri: dataUri(v.maska),
     vyrezUri: dataUri(v.vyrez),
-    podklad: v.podklad,
-    profil: v.profil,
+    podklad: v.podklad ?? null,
+    profil: v.profil ?? null,
     trvanie: Date.now() - zaciatok,
   };
 }
 
-/** Určí druh každej nájdenej škvrny (črty a kľúč bežia vo WebView pri podklade zo skenu). */
-export function urciDruh(podklad: number): Promise<Skvrna[]> {
-  return vypocitajVoWebView<Skvrna[]>({ druh: 'urci', podklad });
+/** Určí druh každej nájdenej škvrny (klasifikacia/ v Pythone). */
+export async function urciDruh(podklad: number): Promise<VysledokUrcenia> {
+  const zaciatok = Date.now();
+  const v = await vypocitajVoWebView<VysledokUrcenia>({ druh: 'urci', podklad });
+  console.log(`Určenie druhu: ${v.skvrny.length} škvŕn, ${sekundy(zaciatok)} s`);
+  return v;
 }

@@ -1,0 +1,10 @@
+otazka,druh,aktualna,aktualna_cv,pca_sama,pca_sama_cv,s_pca,s_pca_cv
+T1,Cladosporium,zona1_dL,0.9848484848484849,pca_lab_pomer31,0.9021464646464646,zona1_dL + pca_lab_rozptyl,0.98989898989899
+T2,Rhodococcus,zona3_db,0.9104761904761904,pca_lab_sklon,1.0,pca_lab_sklon,1.0
+T3,Aspergillus,zona2_db,0.9356060606060607,pca_lab_sklon,0.953125,zona2_db + pca_lab_odchylka,0.9663825757575757
+T4,Penicilium,zona_stred_minus_okraj_dL + zona_stred_minus_okraj_db,0.9690656565656566,pca_lab_rozptyl,0.9343434343434343,zona_stred_minus_okraj_db + pca_lab_rozptyl,0.9829545454545454
+T5,Epicoccum,lbp_P8R1_9 + zona3_dL,0.8674242424242424,pca_ab_odchylka,0.7945075757575758,zona3_dL + pca_ab_odchylka,0.9034090909090909
+B1,Aspergillus,zona2_dL + farba_dL_p10,0.8631578947368421,pca_rgb_pomer21,0.8266995614035088,zona2_dL + pca_lab_sklon,0.8802631578947369
+B2,Exiguobacterium,zona1_db + farba_db_p50,0.8958333333333334,pca_lab_sklon,0.9453125,zona1_db + pca_rgb_sklon,0.9466145833333334
+B3,Rhodococcus,farba_db_p90,0.9444444444444445,pca_lab_sklon,0.9444444444444445,farba_db_p90 + pca_lab_pomer21,1.0
+B4,Curtobacterium,zona_stred_minus_okraj_db + halo_da,0.8541666666666667,pca_lab_smer_ab,0.6875,zona_stred_minus_okraj_db + pca_lab_rozptyl,0.9583333333333334

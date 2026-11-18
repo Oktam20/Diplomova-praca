@@ -1,0 +1,237 @@
+{
+ "druhy": {
+  "Alternaria": "Alternaria alternata",
+  "Arthrobacter": "Arthrobacter sp.",
+  "Aspergillus": "Aspergillus ochraceus",
+  "Cladosporium": "Cladosporium pseudocladosporioides",
+  "Curtobacterium": "Curtobacterium flaccumfaciens",
+  "Epicoccum": "Epicoccum layunese",
+  "Exiguobacterium": "Exiguobacterium indicum",
+  "Micrococcus": "Micrococcus sp.",
+  "Penicilium": "Penicilium mangini",
+  "Rhodococcus": "Rhodococcus degradans",
+  "Sphingomonas": "Sphingomonas aquatilis",
+  "Talaromyces": "Talaromyces purpureogenus"
+ },
+ "skupiny": {
+  "tmave": [
+   "Alternaria",
+   "Aspergillus",
+   "Cladosporium",
+   "Epicoccum",
+   "Penicilium"
+  ],
+  "svetle": [
+   "Arthrobacter",
+   "Curtobacterium",
+   "Exiguobacterium",
+   "Micrococcus",
+   "Rhodococcus",
+   "Sphingomonas",
+   "Talaromyces"
+  ]
+ },
+ "nazvy_skupin": {
+  "tmave": "tmavé – do hneda",
+  "svetle": "svetlé – do žlta"
+ },
+ "jas": {
+  "crta": "farba_dL_mean",
+  "neista_zona": 3.0,
+  "prah": -11.139557361602783
+ },
+ "sytost": {
+  "crta": "farba_chroma",
+  "prah": 10.078389022633491
+ },
+ "ton": {
+  "crta": "farba_odtien_deg",
+  "ton_od": -155.895,
+  "podskupiny": {
+   "do_cervena": [
+    "Arthrobacter"
+   ],
+   "stred": [
+    "Rhodococcus",
+    "Talaromyces",
+    "Exiguobacterium",
+    "Curtobacterium",
+    "Sphingomonas"
+   ],
+   "do_zlta": [
+    "Micrococcus"
+   ]
+  },
+  "nazvy": {
+   "do_cervena": "do červena",
+   "stred": "žltooranžové",
+   "do_zlta": "čisto žlté"
+  },
+  "prah_cervena": 49.10374016354703,
+  "prah_zlta": 91.36991640369115
+ },
+ "textura": {
+  "crta": "gabor_l32_odozva",
+  "nad_prahom": [
+   "Talaromyces"
+  ],
+  "pod_prahom": [
+   "Curtobacterium",
+   "Exiguobacterium",
+   "Rhodococcus",
+   "Sphingomonas"
+  ],
+  "nazvy": {
+   "nad_prahom": "hrubá textúra (pleseň)",
+   "pod_prahom": "jemnejšia textúra (baktérie)"
+  },
+  "prah": 912.0270690917969
+ },
+ "vetvy": {
+  "tmave": [
+   {
+    "druh": "Cladosporium",
+    "crty": [
+     "zona1_dL"
+    ],
+    "smer": "<=",
+    "prah": -53.80149841308594
+   },
+   {
+    "druh": "Rhodococcus",
+    "crty": [
+     "zona3_db"
+    ],
+    "smer": ">",
+    "len_fotky_vetvy": true,
+    "prah": 17.73924160003662
+   },
+   {
+    "druh": "Aspergillus",
+    "crty": [
+     "zona2_db"
+    ],
+    "smer": ">",
+    "prah": 11.794819355010986
+   },
+   {
+    "druh": "Penicilium",
+    "crty": [
+     "zona_stred_minus_okraj_dL",
+     "zona_stred_minus_okraj_db"
+    ],
+    "stred": [
+     -12.316182835896809,
+     -2.4835039717810496
+    ],
+    "mierka": [
+     6.240226281998812,
+     3.6885912801581484
+    ],
+    "uhol": 48,
+    "prah": 1.308535561649935,
+    "smer": -1,
+    "mierka_zony": 1.319967543256821,
+    "skore": 0.98989898989899
+   },
+   {
+    "druh": "Epicoccum",
+    "inak": "Alternaria",
+    "crty": [
+     "lbp_P8R1_9",
+     "zona3_dL"
+    ],
+    "stred": [
+     0.08272183826737999,
+     -39.446696045957964
+    ],
+    "mierka": [
+     0.04286624903706216,
+     9.570141931936675
+    ],
+    "uhol": 36,
+    "prah": -0.22154582221926744,
+    "smer": 1,
+    "mierka_zony": 1.0427466257995563,
+    "skore": 0.9441287878787878
+   }
+  ],
+  "stred_hladke": [
+   {
+    "druh": "Aspergillus",
+    "crty": [
+     "zona2_dL",
+     "farba_dL_p10"
+    ],
+    "len_fotky_vetvy": true,
+    "stred": [
+     -4.583563380095423,
+     -7.2539645110668785
+    ],
+    "mierka": [
+     3.777647650377329,
+     3.7275172046237603
+    ],
+    "uhol": 138,
+    "prah": 0.26165102061660384,
+    "smer": -1,
+    "mierka_zony": 0.16123333085636402,
+    "skore": 0.8842105263157893
+   },
+   {
+    "druh": "Exiguobacterium",
+    "crty": [
+     "zona1_db",
+     "farba_db_p50"
+    ],
+    "stred": [
+     19.3457018167657,
+     18.80771383117227
+    ],
+    "mierka": [
+     15.212867475656129,
+     15.055024845020498
+    ],
+    "uhol": 144,
+    "prah": 0.13041457646406235,
+    "smer": -1,
+    "mierka_zony": 0.22316032366538222,
+    "skore": 0.94921875
+   },
+   {
+    "druh": "Rhodococcus",
+    "crty": [
+     "farba_db_p90"
+    ],
+    "smer": "<=",
+    "prah": 27.87061882019043
+   },
+   {
+    "druh": "Curtobacterium",
+    "inak": "Sphingomonas",
+    "crty": [
+     "zona_stred_minus_okraj_db",
+     "halo_da"
+    ],
+    "stred": [
+     4.74610157807668,
+     -0.07046303536238459
+    ],
+    "mierka": [
+     3.9096552407502525,
+     0.4027300589310354
+    ],
+    "uhol": 6,
+    "prah": -0.040691836516440434,
+    "smer": -1,
+    "mierka_zony": 0.9974488567117276,
+    "skore": 0.9583333333333333
+   }
+  ]
+ },
+ "uspesnost": {
+  "train_cv": 0.826,
+  "test": 0.8081,
+  "test_karticky": 0.8462
+ }
+}

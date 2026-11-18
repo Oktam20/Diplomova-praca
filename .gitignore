@@ -1,2 +1,5 @@
 __pycache__/
 analyzy/skvrny/vysledky/kandidati.csv
+analyzy/behy/
+latex/
+analyzy/klasifikacia/vysledky/crty.csv

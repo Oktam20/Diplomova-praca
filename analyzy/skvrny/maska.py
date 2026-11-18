@@ -1,12 +1,3 @@
-"""Hľadanie masky škvrny na fotke jednej škvrny.
-
-Fotka sa rozloží na farebné kanály, každý kanál sa prahuje niekoľkými metódami v oboch
-smeroch a z takto vzniknutých kandidátnych masiek sa vyberie tá s najvyšším skóre.
-
-Spracovanie je rovnaké ako v aplikácii (app/python): morfológia so zbalenými bitmi
-(skvrny.morfologia), maska s rovnakým celočíselným prahom sa počíta len raz a kontrast
-sa počíta len v okolí masky – výsledok je rovnaký, len rýchlejšie.
-"""
 import math
 
 import cv2

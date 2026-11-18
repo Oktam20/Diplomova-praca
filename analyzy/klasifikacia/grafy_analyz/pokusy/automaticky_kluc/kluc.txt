@@ -1,0 +1,45 @@
+URČOVACÍ KĽÚČ (12 druhov, 127 vzoriek; uzol sa delí, len ak spoľahlivosť >= 95% a každý druh >= 75%)
+Hodnoty dL, da, db sú rozdiely voči papieru v CIELAB (dL < 0 = tmavšie než papier, db > 0 = žltšie).
+
+ 1a. žltosť oproti papieru - najžltšia časť (90. percentil) (farba_db_p90) ≤ 27.01 ... -> 2
+ 1b. žltosť oproti papieru - najžltšia časť (90. percentil) (farba_db_p90) > 27.01 ... -> 9
+     spoľahlivosť rozhodnutia: 100% vzoriek (najhorší druh 100%)
+
+ 2a. žltosť oproti papieru: stred mínus okraj (zona_stred_minus_okraj_db) ≤ -0.66 ... -> 3
+ 2b. žltosť oproti papieru: stred mínus okraj (zona_stred_minus_okraj_db) > -0.66 ... -> 4
+     spoľahlivosť rozhodnutia: 99% vzoriek (najhorší druh 88%)
+
+ 3a. jas oproti papieru - priemer v škvrne (farba_dL_mean) ≤ -45.66 ... => CLADOSPORIUM
+ 3b. jas oproti papieru - priemer v škvrne (farba_dL_mean) > -45.66 ... => ALTERNARIA ALEBO EPICOCCUM
+     spoľahlivosť rozhodnutia: 100% vzoriek (najhorší druh 100%)
+
+ 4a. tón farby škvrny (°) (farba_odtien_deg) ≤ 38.94 ... => ARTHROBACTER
+ 4b. tón farby škvrny (°) (farba_odtien_deg) > 38.94 ... -> 5
+     spoľahlivosť rozhodnutia: 100% vzoriek (najhorší druh 100%)
+
+ 5a. ostrosť okraja (relatívne k farbe škvrny) (okraj_ostrost_rel) ≤ 1.86 ... -> 6
+ 5b. ostrosť okraja (relatívne k farbe škvrny) (okraj_ostrost_rel) > 1.86 ... => EXIGUOBACTERIUM
+     spoľahlivosť rozhodnutia: 100% vzoriek (najhorší druh 100%)
+
+ 6a. žltosť oproti papieru - najžltšia časť (90. percentil) (farba_db_p90) ≤ 7.66 ... => PENICILIUM
+ 6b. žltosť oproti papieru - najžltšia časť (90. percentil) (farba_db_p90) > 7.66 ... -> 7
+     spoľahlivosť rozhodnutia: 97% vzoriek (najhorší druh 88%)
+
+ 7a. textúra - jednotvárnosť (energia) (krok 1 px) (glcm_energy_d1) ≤ 0.37 ... -> 8
+ 7b. textúra - jednotvárnosť (energia) (krok 1 px) (glcm_energy_d1) > 0.37 ... => RHODOCOCCUS
+     spoľahlivosť rozhodnutia: 96% vzoriek (najhorší druh 87%)
+
+ 8a. tvar - kruhovitosť (tvar_kruhovitost) ≤ 0.67 ... => TALAROMYCES
+ 8b. tvar - kruhovitosť (tvar_kruhovitost) > 0.67 ... => ASPERGILLUS
+     spoľahlivosť rozhodnutia: 100% vzoriek (najhorší druh 100%)
+
+ 9a. červenosť oproti papieru: stred mínus okraj (zona_stred_minus_okraj_da) ≤ 1.10 ... => MICROCOCCUS ALEBO SPHINGOMONAS
+ 9b. červenosť oproti papieru: stred mínus okraj (zona_stred_minus_okraj_da) > 1.10 ... => CURTOBACTERIUM
+     spoľahlivosť rozhodnutia: 100% vzoriek (najhorší druh 100%)
+
+OVERENIE (každá vzorka určená kľúčom postaveným bez nej):
+  správny druh je v liste:          81.9 % vzoriek
+  jednoznačne a správne (1 druh):   54.3 %
+  správne a najviac 2 druhy:        81.9 %
+  priemerne druhov v liste:         1.29 (max 2)
+  jednotlivé fotky (nie medián vzorky): správny druh v liste 69.2 %
