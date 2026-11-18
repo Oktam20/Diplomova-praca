@@ -162,6 +162,7 @@ def obrazok_crt(obr, maska, podklady_crt, max_strana=360):
 
     for z, farba in enumerate(FARBY_ZON):
         zmiesaj(vnutri & (podklady_crt["zony"] == z), farba)
+    zmiesaj(vnutri & (podklady_crt["zony"] < 0), FARBA_VYNECHANEHO)
     zmiesaj(~vnutri & podklady_crt["lem"], FARBA_LEMU)
     zmiesaj(~vnutri & ~podklady_crt["lem"] & ~podklady_crt["papier"], FARBA_VYNECHANEHO)
     s_okrajom = np.pad(vnutri, 1).astype(np.uint8)

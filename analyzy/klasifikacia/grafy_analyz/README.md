@@ -7,8 +7,8 @@ rovnaké čísla ako sekcie v starom backende (tam sú aj skripty a CSV s výsle
 > **Dôležité pri citovaní čísel.** Sekcie 03–07 sú počítané na **pôvodných maskách** datasetu
 > a na **celom datasete** (overenie po vzorkách / kartičkách, leave-one-out). Sekcie 10–11
 > už pracujú s rozdelením train / test. Aktuálny kľúč v `klasifikacia/` (nové masky, profil
-> Rýchly, prahy len z train) má na teste 71,7 % fotiek – čísla nižšie preto opisujú, **prečo** má
-> kľúč takú štruktúru, nie výslednú úspešnosť (tá je v `klasifikacia/vysledky/`).
+> Rýchly, črty z jadra škvrny, prahy len z train) má na teste 80,8 % fotiek – čísla nižšie preto
+> opisujú, **prečo** má kľúč takú štruktúru, nie výslednú úspešnosť (tá je v `klasifikacia/vysledky/`).
 
 **Spoločné pojmy**
 - **črty** – farba škvrny **voči papieru** v CIELAB: `dL` (< 0 = tmavšia), `da` (> 0 = červenšia),

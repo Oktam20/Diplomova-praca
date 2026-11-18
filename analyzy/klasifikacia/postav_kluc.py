@@ -50,9 +50,9 @@ def vypocitaj_crty(rozdelenie, fotky, masky):
     return rozdelenie.merge(pd.DataFrame(riadky), on="fotka")
 
 
-def foldy(df):
+def foldy(df, seed=SEED):
     """Kartičky do FOLDY skupín, v rámci každého druhu zvlášť -> číslo foldu každej fotky."""
-    rng = np.random.default_rng(SEED)
+    rng = np.random.default_rng(seed)
     fold = {}
     for _, skupina in df.groupby("druh"):
         vzorky = rng.permutation(sorted(skupina.vzorka.unique()))

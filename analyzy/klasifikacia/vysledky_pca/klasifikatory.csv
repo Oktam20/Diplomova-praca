@@ -1,0 +1,145 @@
+maska,sada,model,cast,seed,uspesnost
+auto,doterajšie črty (46),logistická regresia,train_cv,0,0.8701298701298701
+auto,doterajšie črty (46),logistická regresia,train_cv,1,0.8727272727272727
+auto,doterajšie črty (46),logistická regresia,train_cv,2,0.8857142857142857
+auto,doterajšie črty (46),logistická regresia,train_cv,3,0.8753246753246753
+auto,doterajšie črty (46),logistická regresia,train_cv,4,0.8623376623376623
+auto,doterajšie črty (46),logistická regresia,test,0,0.9090909090909091
+auto,doterajšie črty (46),náhodný les,train_cv,0,0.8805194805194805
+auto,doterajšie črty (46),náhodný les,train_cv,1,0.8883116883116883
+auto,doterajšie črty (46),náhodný les,train_cv,2,0.8805194805194805
+auto,doterajšie črty (46),náhodný les,train_cv,3,0.8831168831168831
+auto,doterajšie črty (46),náhodný les,train_cv,4,0.8805194805194805
+auto,doterajšie črty (46),náhodný les,test,0,0.8686868686868687
+auto,doterajšie + PCA,logistická regresia,train_cv,0,0.8779220779220779
+auto,doterajšie + PCA,logistická regresia,train_cv,1,0.8779220779220779
+auto,doterajšie + PCA,logistická regresia,train_cv,2,0.8779220779220779
+auto,doterajšie + PCA,logistická regresia,train_cv,3,0.8831168831168831
+auto,doterajšie + PCA,logistická regresia,train_cv,4,0.8753246753246753
+auto,doterajšie + PCA,logistická regresia,test,0,0.9393939393939394
+auto,doterajšie + PCA,náhodný les,train_cv,0,0.8779220779220779
+auto,doterajšie + PCA,náhodný les,train_cv,1,0.8935064935064935
+auto,doterajšie + PCA,náhodný les,train_cv,2,0.8805194805194805
+auto,doterajšie + PCA,náhodný les,train_cv,3,0.8831168831168831
+auto,doterajšie + PCA,náhodný les,train_cv,4,0.8779220779220779
+auto,doterajšie + PCA,náhodný les,test,0,0.8686868686868687
+auto,len PCA – všetky,logistická regresia,train_cv,0,0.7480519480519481
+auto,len PCA – všetky,logistická regresia,train_cv,1,0.7532467532467533
+auto,len PCA – všetky,logistická regresia,train_cv,2,0.7662337662337663
+auto,len PCA – všetky,logistická regresia,train_cv,3,0.7610389610389611
+auto,len PCA – všetky,logistická regresia,train_cv,4,0.7740259740259741
+auto,len PCA – všetky,logistická regresia,test,0,0.7676767676767676
+auto,len PCA – všetky,náhodný les,train_cv,0,0.7792207792207793
+auto,len PCA – všetky,náhodný les,train_cv,1,0.7844155844155845
+auto,len PCA – všetky,náhodný les,train_cv,2,0.8077922077922078
+auto,len PCA – všetky,náhodný les,train_cv,3,0.812987012987013
+auto,len PCA – všetky,náhodný les,train_cv,4,0.8181818181818182
+auto,len PCA – všetky,náhodný les,test,0,0.797979797979798
+auto,len PCA – Lab,logistická regresia,train_cv,0,0.6909090909090909
+auto,len PCA – Lab,logistická regresia,train_cv,1,0.6987012987012987
+auto,len PCA – Lab,logistická regresia,train_cv,2,0.6935064935064935
+auto,len PCA – Lab,logistická regresia,train_cv,3,0.6831168831168831
+auto,len PCA – Lab,logistická regresia,train_cv,4,0.7064935064935065
+auto,len PCA – Lab,logistická regresia,test,0,0.7474747474747475
+auto,len PCA – Lab,náhodný les,train_cv,0,0.7506493506493507
+auto,len PCA – Lab,náhodný les,train_cv,1,0.7636363636363637
+auto,len PCA – Lab,náhodný les,train_cv,2,0.7636363636363637
+auto,len PCA – Lab,náhodný les,train_cv,3,0.7688311688311689
+auto,len PCA – Lab,náhodný les,train_cv,4,0.7792207792207793
+auto,len PCA – Lab,náhodný les,test,0,0.8080808080808081
+auto,len PCA – ab,logistická regresia,train_cv,0,0.561038961038961
+auto,len PCA – ab,logistická regresia,train_cv,1,0.5584415584415584
+auto,len PCA – ab,logistická regresia,train_cv,2,0.5688311688311688
+auto,len PCA – ab,logistická regresia,train_cv,3,0.5558441558441558
+auto,len PCA – ab,logistická regresia,train_cv,4,0.5844155844155844
+auto,len PCA – ab,logistická regresia,test,0,0.6565656565656566
+auto,len PCA – ab,náhodný les,train_cv,0,0.6727272727272727
+auto,len PCA – ab,náhodný les,train_cv,1,0.6519480519480519
+auto,len PCA – ab,náhodný les,train_cv,2,0.6779220779220779
+auto,len PCA – ab,náhodný les,train_cv,3,0.6623376623376623
+auto,len PCA – ab,náhodný les,train_cv,4,0.6545454545454545
+auto,len PCA – ab,náhodný les,test,0,0.6666666666666666
+auto,len PCA – RGB,logistická regresia,train_cv,0,0.548051948051948
+auto,len PCA – RGB,logistická regresia,train_cv,1,0.5558441558441558
+auto,len PCA – RGB,logistická regresia,train_cv,2,0.5688311688311688
+auto,len PCA – RGB,logistická regresia,train_cv,3,0.561038961038961
+auto,len PCA – RGB,logistická regresia,train_cv,4,0.5584415584415584
+auto,len PCA – RGB,logistická regresia,test,0,0.6363636363636364
+auto,len PCA – RGB,náhodný les,train_cv,0,0.6155844155844156
+auto,len PCA – RGB,náhodný les,train_cv,1,0.6077922077922078
+auto,len PCA – RGB,náhodný les,train_cv,2,0.6363636363636364
+auto,len PCA – RGB,náhodný les,train_cv,3,0.6285714285714286
+auto,len PCA – RGB,náhodný les,train_cv,4,0.6363636363636364
+auto,len PCA – RGB,náhodný les,test,0,0.5757575757575758
+rucna,doterajšie črty (46),logistická regresia,train_cv,0,0.8909090909090909
+rucna,doterajšie črty (46),logistická regresia,train_cv,1,0.9038961038961039
+rucna,doterajšie črty (46),logistická regresia,train_cv,2,0.9116883116883117
+rucna,doterajšie črty (46),logistická regresia,train_cv,3,0.9116883116883117
+rucna,doterajšie črty (46),logistická regresia,train_cv,4,0.9038961038961039
+rucna,doterajšie črty (46),logistická regresia,test,0,0.9494949494949495
+rucna,doterajšie črty (46),náhodný les,train_cv,0,0.8779220779220779
+rucna,doterajšie črty (46),náhodný les,train_cv,1,0.9012987012987013
+rucna,doterajšie črty (46),náhodný les,train_cv,2,0.8883116883116883
+rucna,doterajšie črty (46),náhodný les,train_cv,3,0.8883116883116883
+rucna,doterajšie črty (46),náhodný les,train_cv,4,0.8935064935064935
+rucna,doterajšie črty (46),náhodný les,test,0,0.898989898989899
+rucna,doterajšie + PCA,logistická regresia,train_cv,0,0.9142857142857143
+rucna,doterajšie + PCA,logistická regresia,train_cv,1,0.9116883116883117
+rucna,doterajšie + PCA,logistická regresia,train_cv,2,0.9194805194805195
+rucna,doterajšie + PCA,logistická regresia,train_cv,3,0.9168831168831169
+rucna,doterajšie + PCA,logistická regresia,train_cv,4,0.9194805194805195
+rucna,doterajšie + PCA,logistická regresia,test,0,0.9393939393939394
+rucna,doterajšie + PCA,náhodný les,train_cv,0,0.8961038961038961
+rucna,doterajšie + PCA,náhodný les,train_cv,1,0.9090909090909091
+rucna,doterajšie + PCA,náhodný les,train_cv,2,0.9168831168831169
+rucna,doterajšie + PCA,náhodný les,train_cv,3,0.9246753246753247
+rucna,doterajšie + PCA,náhodný les,train_cv,4,0.9064935064935065
+rucna,doterajšie + PCA,náhodný les,test,0,0.8888888888888888
+rucna,len PCA – všetky,logistická regresia,train_cv,0,0.7974025974025974
+rucna,len PCA – všetky,logistická regresia,train_cv,1,0.8181818181818182
+rucna,len PCA – všetky,logistická regresia,train_cv,2,0.8181818181818182
+rucna,len PCA – všetky,logistická regresia,train_cv,3,0.8025974025974026
+rucna,len PCA – všetky,logistická regresia,train_cv,4,0.8155844155844156
+rucna,len PCA – všetky,logistická regresia,test,0,0.8080808080808081
+rucna,len PCA – všetky,náhodný les,train_cv,0,0.8675324675324675
+rucna,len PCA – všetky,náhodný les,train_cv,1,0.8857142857142857
+rucna,len PCA – všetky,náhodný les,train_cv,2,0.8935064935064935
+rucna,len PCA – všetky,náhodný les,train_cv,3,0.8805194805194805
+rucna,len PCA – všetky,náhodný les,train_cv,4,0.8909090909090909
+rucna,len PCA – všetky,náhodný les,test,0,0.7676767676767676
+rucna,len PCA – Lab,logistická regresia,train_cv,0,0.7610389610389611
+rucna,len PCA – Lab,logistická regresia,train_cv,1,0.7818181818181819
+rucna,len PCA – Lab,logistická regresia,train_cv,2,0.7714285714285715
+rucna,len PCA – Lab,logistická regresia,train_cv,3,0.7714285714285715
+rucna,len PCA – Lab,logistická regresia,train_cv,4,0.7688311688311689
+rucna,len PCA – Lab,logistická regresia,test,0,0.7676767676767676
+rucna,len PCA – Lab,náhodný les,train_cv,0,0.8779220779220779
+rucna,len PCA – Lab,náhodný les,train_cv,1,0.8883116883116883
+rucna,len PCA – Lab,náhodný les,train_cv,2,0.8831168831168831
+rucna,len PCA – Lab,náhodný les,train_cv,3,0.8727272727272727
+rucna,len PCA – Lab,náhodný les,train_cv,4,0.8701298701298701
+rucna,len PCA – Lab,náhodný les,test,0,0.7777777777777778
+rucna,len PCA – ab,logistická regresia,train_cv,0,0.5974025974025974
+rucna,len PCA – ab,logistická regresia,train_cv,1,0.5974025974025974
+rucna,len PCA – ab,logistická regresia,train_cv,2,0.6025974025974026
+rucna,len PCA – ab,logistická regresia,train_cv,3,0.6077922077922078
+rucna,len PCA – ab,logistická regresia,train_cv,4,0.6
+rucna,len PCA – ab,logistická regresia,test,0,0.6464646464646465
+rucna,len PCA – ab,náhodný les,train_cv,0,0.6623376623376623
+rucna,len PCA – ab,náhodný les,train_cv,1,0.638961038961039
+rucna,len PCA – ab,náhodný les,train_cv,2,0.6519480519480519
+rucna,len PCA – ab,náhodný les,train_cv,3,0.6597402597402597
+rucna,len PCA – ab,náhodný les,train_cv,4,0.6675324675324675
+rucna,len PCA – ab,náhodný les,test,0,0.6363636363636364
+rucna,len PCA – RGB,logistická regresia,train_cv,0,0.612987012987013
+rucna,len PCA – RGB,logistická regresia,train_cv,1,0.6415584415584416
+rucna,len PCA – RGB,logistická regresia,train_cv,2,0.6467532467532467
+rucna,len PCA – RGB,logistická regresia,train_cv,3,0.6727272727272727
+rucna,len PCA – RGB,logistická regresia,train_cv,4,0.6441558441558441
+rucna,len PCA – RGB,logistická regresia,test,0,0.6767676767676768
+rucna,len PCA – RGB,náhodný les,train_cv,0,0.6935064935064935
+rucna,len PCA – RGB,náhodný les,train_cv,1,0.7064935064935065
+rucna,len PCA – RGB,náhodný les,train_cv,2,0.7350649350649351
+rucna,len PCA – RGB,náhodný les,train_cv,3,0.7324675324675325
+rucna,len PCA – RGB,náhodný les,train_cv,4,0.7168831168831169
+rucna,len PCA – RGB,náhodný les,test,0,0.6565656565656566

@@ -2,6 +2,7 @@
 
 Farba papiera sa odhaduje pre každý pixel z okolia škvrny, preto črty nezávisia od jasu ani
 farebného nádychu fotky. Všetky farebné črty sú rozdiely voči papieru v CIELAB (dL, da, db).
+Farba, zóny a textúra sa počítajú z jadra škvrny bez rozmazaného okraja, papier a lem z celej masky.
 """
 import math
 
@@ -12,6 +13,7 @@ from skimage.feature import local_binary_pattern
 from skvrny.morfologia import rozsir_masku, zuz_masku
 
 MIN_PLOCHA = 200
+JADRO = 0.45
 STRANA_ODHADU = 256
 ZON = 4
 PRIEMER_VYREZU = 256
@@ -57,6 +59,26 @@ def odhad_papiera(lab, maska, polomer):
     if f < 1.0:
         pozadie = cv2.resize(pozadie, (w, h), interpolation=cv2.INTER_LINEAR)
     return pozadie.astype(np.float32), papier
+
+
+def jadro(rel, maska, podiel=JADRO):
+    """Jadro škvrny: najväčšia súvislá časť masky, kde je farebný rozdiel od papiera aspoň podiel z jeho 90. percentilu.
+
+    Rozmazaný okraj kolónie má farbu blízko papiera a rozdiely medzi druhmi zotiera. Pri podiele 0 alebo
+    jadre menšom ako MIN_PLOCHA ostane celá maska.
+    """
+    if podiel <= 0:
+        return maska
+    rozdiel = np.linalg.norm(rel, axis=2)
+    vnutri = maska > 0
+    vyber = vnutri & (rozdiel >= podiel * np.percentile(rozdiel[vnutri], 90))
+    pocet, oblasti, udaje, _ = cv2.connectedComponentsWithStats(vyber.astype(np.uint8))
+    if pocet < 2:
+        return maska
+    najvacsia = 1 + int(np.argmax(udaje[1:, cv2.CC_STAT_AREA]))
+    if udaje[najvacsia, cv2.CC_STAT_AREA] < MIN_PLOCHA:
+        return maska
+    return (oblasti == najvacsia).astype(np.uint8) * 255
 
 
 def statistiky(predpona, hodnoty):
@@ -149,8 +171,8 @@ def gabor(vyrez_jasu, vyrez_masky, lam=LAMBDA_GABOR):
     return float(np.mean(odozvy))
 
 
-def crty_skvrny(obrazok, maska, s_texturou=True):
-    """Črty škvrny a podklady pre obrázok čŕt (zóny, lem, papier, výrez); None pri malej maske."""
+def crty_skvrny(obrazok, maska, s_texturou=True, podiel_jadra=JADRO):
+    """Črty škvrny a podklady pre obrázok čŕt (zóny, lem, papier, jadro, výrez); None pri malej maske."""
     maska = (maska > 0).astype(np.uint8) * 255
     plocha = cv2.countNonZero(maska)
     if plocha < MIN_PLOCHA:
@@ -159,14 +181,15 @@ def crty_skvrny(obrazok, maska, s_texturou=True):
     lab = cv2.cvtColor(obrazok.astype(np.float32) / 255.0, cv2.COLOR_BGR2LAB)
     pozadie, papier = odhad_papiera(lab, maska, polomer)
     rel = lab - pozadie
+    stred = jadro(rel, maska, podiel_jadra)
 
-    crty = farba(rel, maska > 0)
-    crty_zon, cisla_zon = zony(rel, maska)
+    crty = farba(rel, stred > 0)
+    crty_zon, cisla_zon = zony(rel, stred)
     crty_lemu, pas = lem(rel, maska, polomer)
-    vyrez = normovany_vyrez(rel[..., 0], maska, polomer)
+    vyrez = normovany_vyrez(rel[..., 0], stred, math.sqrt(cv2.countNonZero(stred) / math.pi))
     crty.update(crty_zon)
     crty.update(crty_lemu)
     crty.update(lbp(*vyrez))
     if s_texturou:
         crty[f"gabor_l{LAMBDA_GABOR}_odozva"] = gabor(*vyrez)
-    return crty, {"zony": cisla_zon, "lem": pas, "papier": papier, "vyrez": vyrez}
+    return crty, {"zony": cisla_zon, "lem": pas, "papier": papier, "jadro": stred, "vyrez": vyrez}

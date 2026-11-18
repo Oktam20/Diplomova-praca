@@ -5,7 +5,8 @@
 #   ./spusti_analyzy.sh            všetky kroky
 #   ./spusti_analyzy.sh skvrny     len časť 1 (masky, rozdelenie, vyhodnotenie, výber kanálov)
 #   ./spusti_analyzy.sh dokumenty  len časť 2 (strany, hľadanie škvŕn, syntetický test)
-#   ./spusti_analyzy.sh klasifikacia  len časť 3 (určovací kľúč: stavba na train, overenie na test)
+#   ./spusti_analyzy.sh klasifikacia  len časť 3 (určovací kľúč: stavba na train, overenie na test; PCA farieb;
+#                                     výber jadra škvrny)
 
 set -uo pipefail
 cd "$(dirname "$0")"
@@ -96,6 +97,10 @@ if [[ "$CAST" == "vsetko" || "$CAST" == "klasifikacia" ]]; then
   [[ -d "$MASKY" ]] || MASKY="images/D2/masky"
   krok "3.1 Určovací kľúč (train / test)" klasifikacia.postav_kluc --fotky images/D2 --masky "$MASKY" \
     --vystup "$BEH/klasifikacia"
+  krok "3.2 PCA farieb pixelov škvrny" klasifikacia.pca_farieb --fotky images/D2 --masky "$MASKY" \
+    --rucne images/D2masks --vystup "$BEH/klasifikacia_pca"
+  krok "3.3 Výber jadra škvrny" klasifikacia.vyber_jadra --fotky images/D2 --masky "$MASKY" \
+    --rucne images/D2masks --vystup "$BEH/klasifikacia_jadro"
 fi
 
 zhrnutie
