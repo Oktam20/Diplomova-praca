@@ -1,12 +1,3 @@
-"""Výber jadra škvrny, z ktorého sa počítajú črty kľúča: koľko z rozmazaného okraja kolónie vynechať.
-
-    python -m klasifikacia.vyber_jadra --fotky images/D2 --masky images/D2/masky --rucne images/D2masks
-
-Jadro sú pixely masky, ktorých farebný rozdiel od papiera je aspoň daný podiel z jeho 90. percentilu
-(najväčšia súvislá časť); podiel 0 je celá maska. Pre každý podiel sa kľúč naučí na train a vyhodnotí
-krížovou validáciou po kartičkách (OPAKOVANIA rozdelení na foldy). Podiel sa vyberá len podľa nej,
-test slúži na porovnanie.
-"""
 import argparse
 import math
 from concurrent.futures import ProcessPoolExecutor

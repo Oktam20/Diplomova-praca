@@ -1,10 +1,3 @@
-"""Stavba určovacieho kľúča na trénovacích fotkách a overenie na testovacích.
-
-    python -m klasifikacia.postav_kluc --fotky images/D2 --masky images/D2/masky [--uloz]
-
-Štruktúra kľúča je zo struktura_kluca.json, prahy sa učia len na train (skvrny/rozdelenie.csv).
-Úspešnosť na train sa odhaduje krížovou validáciou po kartičkách, konečné vyhodnotenie je na test.
-"""
 import argparse
 import json
 from concurrent.futures import ProcessPoolExecutor

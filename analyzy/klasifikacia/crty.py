@@ -1,9 +1,3 @@
-"""Črty škvrny pre určovací kľúč: farba voči papieru, zóny od okraja k stredu, lem a textúra.
-
-Farba papiera sa odhaduje pre každý pixel z okolia škvrny, preto črty nezávisia od jasu ani
-farebného nádychu fotky. Všetky farebné črty sú rozdiely voči papieru v CIELAB (dL, da, db).
-Farba, zóny a textúra sa počítajú z jadra škvrny bez rozmazaného okraja, papier a lem z celej masky.
-"""
 import math
 
 import cv2

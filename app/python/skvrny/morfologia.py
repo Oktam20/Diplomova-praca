@@ -1,10 +1,3 @@
-"""Morfológia s eliptickým jadrom – rovnaký výsledok ako cv2.dilate, cv2.erode a cv2.morphologyEx,
-ale v Pyodide (WebAssembly bez SIMD) niekoľkonásobne rýchlejšia.
-
-Jadro sa rozloží na riadky: riadok dy má polovičnú šírku s. Obrázok sa postupne rozšíri do strán
-(o 1, 2, ... px) a každý riadok jadra sa pridá posunutý o dy. Binárne masky sa pritom zbalia
-po 64 pixelov do jedného čísla (ako v pôvodnom TypeScripte aplikácie).
-"""
 import numpy as np
 
 

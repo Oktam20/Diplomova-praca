@@ -1,12 +1,4 @@
 #!/usr/bin/env bash
-# Celé spracovanie analýz krok po kroku. Každý beh má vlastný priečinok behy/<dátum_čas>/
-# so všetkými výstupmi a záznamom beh.log; staré výsledky sa neprepisujú.
-#
-#   ./spusti_analyzy.sh            všetky kroky
-#   ./spusti_analyzy.sh skvrny     len časť 1 (masky, rozdelenie, vyhodnotenie, výber kanálov)
-#   ./spusti_analyzy.sh dokumenty  len časť 2 (strany, hľadanie škvŕn, syntetický test)
-#   ./spusti_analyzy.sh klasifikacia  len časť 3 (určovací kľúč: stavba na train, overenie na test; PCA farieb;
-#                                     výber jadra škvrny)
 
 set -uo pipefail
 cd "$(dirname "$0")"

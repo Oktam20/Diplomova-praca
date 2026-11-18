@@ -1,4 +1,3 @@
-"""Farby a štýl grafov analýz klasifikácie (rovnaký vzhľad ako grafy, z ktorých vznikol kľúč)."""
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 

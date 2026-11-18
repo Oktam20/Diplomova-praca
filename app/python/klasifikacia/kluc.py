@@ -1,13 +1,3 @@
-"""Určovací kľúč: učenie prahov z dát a určenie škvrny.
-
-Štruktúra kľúča (struktura_kluca.json) je výsledok analýzy čŕt: skupiny druhov, poradie otázok
-a ich črty. Z dát sa učia len prahy. Kľúč sa pýta postupne:
-  1. jas voči papieru: tmavé / svetlé (v neistej zóne okolo prahu rozhodne sýtosť),
-  2. tmavé: otázky vetvy "tmave" až po druh,
-  3. svetlé: tón (do červena / stred / do žlta), stred podľa hrubej textúry (Gabor),
-     hladké baktérie otázkami vetvy "stred_hladke".
-Otázka má jednu črtu (prah) alebo dvojicu čŕt (deliaca priamka v rovine dvoch štandardizovaných čŕt).
-"""
 import copy
 import json
 

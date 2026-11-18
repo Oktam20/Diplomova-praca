@@ -1,7 +1,3 @@
-"""Návrh miest škvŕn na strane: farebný rozdiel od papiera a vyradenie nálezov, ktoré nie sú škvrny.
-
-Morfológia ide cez skvrny.morfologia – rovnaké spracovanie ako v aplikácii (app/python).
-"""
 from dataclasses import dataclass
 
 import cv2

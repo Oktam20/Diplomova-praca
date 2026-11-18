@@ -1,7 +1,3 @@
-"""Hľadanie škvŕn na fotkách strán dokumentov.
-
-    python -m dokumenty.dokument <strany alebo priečinok>
-"""
 import argparse
 import shutil
 from pathlib import Path

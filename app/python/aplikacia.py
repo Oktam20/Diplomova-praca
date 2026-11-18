@@ -1,5 +1,3 @@
-"""Prepojenie aplikácie s analýzami: fotka z mobilu -> maska, výrezy, určenie druhu a obrázky na zobrazenie.
-"""
 import base64
 import json
 import re

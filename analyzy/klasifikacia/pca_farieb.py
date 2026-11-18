@@ -1,12 +1,3 @@
-"""PCA farieb pixelov škvrny: pomôžu smery vlastných vektorov a pomery vlastných čísel určiť druh?
-
-    python -m klasifikacia.pca_farieb --fotky images/D2 --masky images/D2/masky --rucne images/D2masks
-
-Z pixelov vo vnútri masky sa spočíta kovariančná matica farieb (Lab voči papieru, rovina ab, RGB),
-jej vlastné vektory a vlastné čísla. Črty sú smer hlavnej osi, pomery vlastných čísel a rozptyl pozdĺž
-hlavnej osi. Porovnáva sa ručná maska, automatická maska a jej jadro bez okrajovej zóny. Analýza,
-výber čŕt aj učenie sú len na train (krížová validácia po kartičkách), test slúži na konečné porovnanie.
-"""
 import argparse
 import copy
 import json

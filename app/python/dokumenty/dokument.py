@@ -1,10 +1,3 @@
-"""Hľadanie škvŕn na fotke strany dokumentu – rýchlejšia kópia analyzy/dokumenty/dokument.py pre aplikáciu.
-
-Oproti analýzam: pri fotke do 1600 px sa text odstraňuje len raz (spoločne pre mapu tlače aj
-návrh miest), okolie navrhnutého miesta sa rozširuje cez skvrny.morfologia, oblasti pri
-mieste sa vyberajú z už označených oblastí kandidáta a skóre sa počíta len pre kandidátov,
-ktorí prejdú podmienkami. Ukladanie súborov a obrázky z analýz tu nie sú – výrezy vracia vyrezy().
-"""
 import cv2
 import numpy as np
 

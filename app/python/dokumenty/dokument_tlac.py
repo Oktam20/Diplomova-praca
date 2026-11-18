@@ -1,9 +1,3 @@
-"""Rýchlejšia kópia analyzy/dokumenty/dokument_tlac.py pre aplikáciu.
-
-Oproti analýzam: morfológia cez skvrny.morfologia, blackhat sa počíta na 8-bitovom jase (s rovnakým
-výsledkom), Lab fotky sa počíta raz, pri malej fotke sa text odstraňuje len raz (priprav_stranu)
-a mapa tlače sa robí z fotky s dlhšou stranou 2400 px (ako v pôvodnom TypeScripte aplikácie).
-"""
 import cv2
 import numpy as np
 

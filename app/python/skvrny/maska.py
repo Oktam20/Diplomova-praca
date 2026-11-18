@@ -1,11 +1,3 @@
-"""Hľadanie masky škvrny na fotke jednej škvrny – rýchlejšia kópia analyzy/skvrny/maska.py pre aplikáciu.
-
-Výsledok je rovnaký ako v analýzach, zrýchlenia sú ako v pôvodnom TypeScripte aplikácie:
-počítajú sa len farebné priestory potrebné pre profil, rovnaký celočíselný prah sa neskúša
-dvakrát, morfológia počíta so zbalenými bitmi (skvrny.morfologia), vyčistenie masky
-používa tabuľku namiesto prechodu cez každú oblasť, kontrast sa počíta len v okolí masky
-a skóre sa počíta až pri výbere kandidáta.
-"""
 import math
 
 import cv2
