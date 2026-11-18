@@ -58,3 +58,4 @@ preto test nie je od nej úplne nezávislý; prahy sa však učia len na train.
 | `struktura_kluca.json` | štruktúra kľúča bez prahov |
 | `postav_kluc.py` | celý postup: črty, učenie na train, vyhodnotenie, grafy |
 | `kluc.json` | kľúč, ktorý používa aplikácia (`--uloz`) |
+| `grafy_analyz/` | grafy analýz, z ktorých vznikla štruktúra kľúča (zo starého backendu), s popisom v `grafy_analyz/README.md` |
