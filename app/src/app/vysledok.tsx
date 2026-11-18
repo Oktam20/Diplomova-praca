@@ -1,11 +1,13 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ikona } from '@/komponenty/ikona';
 import { KartaSkvrny } from '@/komponenty/karta-skvrny';
 import { Prepinac } from '@/komponenty/prepinac';
+import { PrepinacSkvrn } from '@/komponenty/prepinac-skvrn';
+import { ZoznamSkvrn } from '@/komponenty/zoznam-skvrn';
 import { nacitajVysledok, poziadajONovySken } from '@/vypocty/vysledok-skenu';
 import { FARBY, MEDZERA } from '@/vzhlad';
 
@@ -18,6 +20,14 @@ const desatinne = (v: number) => v.toFixed(1).replace('.', ',');
 export default function Vysledok() {
   const vysledok = nacitajVysledok();
   const [pohlad, setPohlad] = useState<Pohlad>('maska');
+  const [aktivna, setAktivna] = useState(0);
+  const [polohaPrepinaca, setPolohaPrepinaca] = useState(0);
+  const stranka = useRef<ScrollView>(null);
+
+  const otvorSkvrnu = (index: number) => {
+    setAktivna(index);
+    stranka.current?.scrollTo({ y: polohaPrepinaca, animated: true });
+  };
 
   if (!vysledok) {
     return (
@@ -46,7 +56,7 @@ export default function Vysledok() {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.zoznam}>
+        <ScrollView ref={stranka} contentContainerStyle={styles.zoznam}>
           <View style={styles.ram}>{uri && <Image source={{ uri }} style={styles.fotka} resizeMode="contain" />}</View>
           <Prepinac
             moznosti={[
@@ -62,8 +72,15 @@ export default function Vysledok() {
             <View style={styles.karta}>
               <Text style={styles.prazdny}>Nenašla sa žiadna škvrna, ktorú by sa dalo zaradiť.</Text>
             </View>
+          ) : vysledok.skvrny.length === 1 ? (
+            <KartaSkvrny skvrna={vysledok.skvrny[0]} />
           ) : (
-            vysledok.skvrny.map((skvrna) => <KartaSkvrny key={skvrna.nazov} skvrna={skvrna} />)
+            <>
+              <ZoznamSkvrn skvrny={vysledok.skvrny} aktivna={aktivna} vyber={otvorSkvrnu} />
+              <View onLayout={(e) => setPolohaPrepinaca(e.nativeEvent.layout.y)}>
+                <PrepinacSkvrn skvrny={vysledok.skvrny} aktivna={aktivna} zmena={setAktivna} />
+              </View>
+            </>
           )}
 
           <Text style={styles.poznamka}>

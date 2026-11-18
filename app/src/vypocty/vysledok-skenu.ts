@@ -1,4 +1,3 @@
-/** Požiadavka na výpočet v Pythone (obrázky ako PNG v base64). */
 export type Poziadavka = { druh: 'obrazok'; png: string } | { druh: 'dokument'; png: string } | { druh: 'urci'; podklad: number };
 
 type Spolocne = { sirka: number; vyska: number; profil?: string; maska: string; vyrez: string; podklad?: number };
@@ -17,8 +16,8 @@ export type Urcenie = {
   cesta: KrokCesty[];
 };
 
-/** Určená škvrna: názov (Škvrna, Škvrna 2, ...), výsledok kľúča a obrázok čŕt (PNG base64). */
-export type Skvrna = { nazov: string; urcenie: Urcenie; obrazok?: string };
+/** Určená škvrna: názov (Škvrna, Škvrna 2, ...), výsledok kľúča, obrázok čŕt a náhľad výrezu (PNG base64). */
+export type Skvrna = { nazov: string; urcenie: Urcenie; obrazok?: string; nahlad?: string };
 
 export type VysledokUrcenia = { skvrny: Skvrna[]; uspesnost?: number };
 

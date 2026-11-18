@@ -38,9 +38,11 @@ Obrazovky (`src/app/`) a ich časti (`src/komponenty/`):
 | súbor | obsah |
 |---|---|
 | `app/index.tsx` | skenovanie – fotka, výber režimu, maska a spustenie určenia druhu |
-| `app/vysledok.tsx` | výsledok – určený druh a črty škvrny |
+| `app/vysledok.tsx` | výsledok – určený druh a črty škvrny; pri viacerých škvrnách zoznam a prepínač |
 | `app/_layout.tsx` | navigácia a skrytý WebView na výpočty |
 | `komponenty/karta-skvrny.tsx` | výsledok jednej škvrny a cesta kľúčom |
+| `komponenty/zoznam-skvrn.tsx` | zoznam všetkých škvŕn: náhľad výrezu, názov a určený druh |
+| `komponenty/prepinac-skvrn.tsx` | karty škvŕn po jednej – šípky alebo potiahnutie do strany |
 | `komponenty/prepinac.tsx`, `vodidlo.tsx`, `ikona.tsx` | prepínač, rohy na zarovnanie vzorky, ikony |
 | `vzhlad.ts` | farby a medzery |
 
