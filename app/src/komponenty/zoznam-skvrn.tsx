@@ -1,5 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useJazyk } from '@/jazyk';
 import { Ikona } from '@/komponenty/ikona';
 import type { Skvrna } from '@/vypocty/vysledok-skenu';
 import { FARBY, MEDZERA } from '@/vzhlad';
@@ -8,11 +9,12 @@ type Props = { skvrny: Skvrna[]; aktivna: number; vyber: (index: number) => void
 
 /** Krátky zoznam všetkých škvŕn: náhľad výrezu, názov a určenie; ťuknutie otvorí škvrnu v prepínači. */
 export function ZoznamSkvrn({ skvrny, aktivna, vyber }: Props) {
+  const { jazyk, t } = useJazyk();
   return (
     <View style={styles.zoznam}>
       {skvrny.map((skvrna, i) => (
         <Pressable
-          key={skvrna.nazov}
+          key={skvrna.cislo ?? i}
           onPress={() => vyber(i)}
           style={({ pressed }) => [
             styles.riadok,
@@ -26,9 +28,9 @@ export function ZoznamSkvrn({ skvrny, aktivna, vyber }: Props) {
             <View style={styles.nahlad} />
           )}
           <View style={styles.texty}>
-            <Text style={styles.nazov}>{skvrna.nazov}</Text>
-            <Text style={skvrna.urcenie.druh ? styles.druh : styles.skupina} numberOfLines={1}>
-              {skvrna.urcenie.druh ?? skvrna.urcenie.nazov}
+            <Text style={styles.nazov}>{t.skvrna.nazov(skvrna.cislo)}</Text>
+            <Text style={skvrna.urcenie[jazyk].druh ? styles.druh : styles.skupina} numberOfLines={1}>
+              {skvrna.urcenie[jazyk].druh ?? skvrna.urcenie[jazyk].nazov}
             </Text>
           </View>
           <Ikona ios="chevron.right" android="chevron_right" farba={FARBY.tlmeny} velkost={14} />

@@ -1,25 +1,6 @@
-export type Poziadavka = { druh: 'obrazok'; png: string } | { druh: 'dokument'; png: string } | { druh: 'urci'; podklad: number };
+import type { Skvrna } from './kluc';
 
-type Spolocne = { sirka: number; vyska: number; profil?: string; maska: string; vyrez: string; podklad?: number };
-export type VysledokObrazka = Spolocne;
-export type VysledokDokumentu = Spolocne & { prehlad: string; miest: number; nasiel: boolean };
-
-/** Jedna otázka kľúča na ceste k výsledku. */
-export type KrokCesty = { otazka: string; popis: string; vysledok: string };
-
-export type Urcenie = {
-  skupina?: 'tmave' | 'svetle' | 'neiste';
-  nazov: string;
-  podskupina?: string;
-  druhy: string[];
-  druh?: string;
-  cesta: KrokCesty[];
-};
-
-/** Určená škvrna: názov (Škvrna, Škvrna 2, ...), výsledok kľúča, obrázok čŕt a náhľad výrezu (PNG base64). */
-export type Skvrna = { nazov: string; urcenie: Urcenie; obrazok?: string; nahlad?: string };
-
-export type VysledokUrcenia = { skvrny: Skvrna[]; uspesnost?: number };
+export type { KrokCesty, Skvrna, Urcenie } from './kluc';
 
 /** Výsledok skenu, ktorý si obrazovka Výsledok prevezme od obrazovky skenovania. */
 export type VysledokSkenu = {
@@ -28,7 +9,7 @@ export type VysledokSkenu = {
   maskaUri: string | null;
   vyrezUri: string | null;
   skvrny: Skvrna[];
-  uspesnostKluca?: number;
+  overenieKluca: number;
   profil: string | null;
   trvanie: number;
 };

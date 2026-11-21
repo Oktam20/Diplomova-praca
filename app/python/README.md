@@ -1,6 +1,10 @@
-# Python v aplikácii
+# Python v aplikácii (pokus)
 
-Kópia výpočtov z `analyzy/`, ktorú aplikácia spúšťa v mobile cez Pyodide (Python s numpy,
+> Aplikácia tento kód **nepoužíva** – výpočty bežia v TypeScripte v `src/vypocty/`. Priečinok ostal
+> ako pokus so spracovaním v Pythone. Napojený na aplikáciu bol do commitu `20d89be`
+> (vetva `feature/klasifikacia-ladenie`); `webview-worker.ts` a `python.d.ts` sú odtiaľ.
+
+Kópia výpočtov z `analyzy/`, ktorá sa spúšťala v mobile cez Pyodide (Python s numpy,
 OpenCV a scikit-image vo WebView). Funkcie a konštanty sa volajú rovnako ako v analýzach,
 kód je len upravený na rýchlosť – v Pyodide nemá OpenCV SIMD ani vlákna, takže veľké
 morfologické jadrá a zbytočné prechody cez celý obrázok sú tam niekoľkonásobne pomalšie ako na PC.
@@ -24,4 +28,4 @@ morfologické jadrá a zbytočné prechody cez celý obrázok sú tam niekoľkon
 | dokument | 27,8 s | 6,0 s |
 
 Okrem `TLAC_STRANA` (v analýzach 3200 px) dávajú funkcie rovnaký výsledok ako v `analyzy/`.
-Súbory sa do aplikácie vkladajú pri `npm run build:worker`, preto ho treba po každej zmene spustiť.
+Keď bol pokus napojený, súbory sa do aplikácie vkladali pri `npm run build:worker` (zbalením `webview-worker.ts`).

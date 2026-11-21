@@ -1,0 +1,490 @@
+{
+  "krok": 1,
+  "crta": "farba_dL_mean",
+  "popis": "jas škvrny voči papieru (dL)",
+  "prah": -11.006,
+  "pravidlo": "farba_dL_mean <= prah -> tmave, inak svetle",
+  "tmave": [
+    "Alternaria_Alternata",
+    "Aspergillus_Ochraceus",
+    "Cladosporium_Pseudocladosporioides",
+    "Epicoccum_Layunese",
+    "Penicilium_Mangini"
+  ],
+  "svetle": [
+    "Arthrobacter_Sp",
+    "Curtobacterium_Flaccumfaciens",
+    "Exiguobacterium_Indicum",
+    "Micrococcus_Sp",
+    "Rhodococcus_Degradans",
+    "Sphingomonas_Aquatilis",
+    "Talaromyces_Purpureogenus"
+  ],
+  "nazvy_skupin": {
+    "tmave": "tmavé - do hneda",
+    "svetle": "svetlé - do žlta"
+  },
+  "neista_zona": 3.0,
+  "spolahlivost": 0.925,
+  "po_druhoch": {
+    "Alternaria_Alternata": 0.9333,
+    "Arthrobacter_Sp": 1.0,
+    "Aspergillus_Ochraceus": 0.6833,
+    "Cladosporium_Pseudocladosporioides": 1.0,
+    "Curtobacterium_Flaccumfaciens": 1.0,
+    "Epicoccum_Layunese": 0.925,
+    "Exiguobacterium_Indicum": 1.0,
+    "Micrococcus_Sp": 1.0,
+    "Penicilium_Mangini": 0.9375,
+    "Rhodococcus_Degradans": 0.7143,
+    "Sphingomonas_Aquatilis": 1.0,
+    "Talaromyces_Purpureogenus": 0.9062
+  },
+  "overenie_po_karticakch": 0.9132,
+  "krok_2": {
+    "kedy": "škvrna je v neistej zóne kroku 1 (|farba_dL_mean - prah| <= neista_zona)",
+    "crta": "farba_chroma",
+    "popis": "sýtosť farby škvrny voči papieru",
+    "prah": 17.9,
+    "pravidlo": "farba_chroma <= prah -> tmave, inak svetle",
+    "spolahlivost_v_zone": 0.9194,
+    "skvrn_v_zone": 62,
+    "porovnanie_odtien": "farba_odtien_deg <= 75.7 -> tmave: v zóne správne len 74-76 %",
+    "overenie_po_karticakch": 0.9256,
+    "po_druhoch": {
+      "Alternaria_Alternata": 0.9833,
+      "Arthrobacter_Sp": 1.0,
+      "Aspergillus_Ochraceus": 0.7167,
+      "Cladosporium_Pseudocladosporioides": 1.0,
+      "Curtobacterium_Flaccumfaciens": 1.0,
+      "Epicoccum_Layunese": 0.925,
+      "Exiguobacterium_Indicum": 1.0,
+      "Micrococcus_Sp": 1.0,
+      "Penicilium_Mangini": 0.9375,
+      "Rhodococcus_Degradans": 0.7143,
+      "Sphingomonas_Aquatilis": 1.0,
+      "Talaromyces_Purpureogenus": 0.8438
+    }
+  },
+  "svetle_ton": {
+    "krok": "svetle_ton",
+    "kedy": "škvrna je v skupine svetle",
+    "crta": "farba_odtien_deg",
+    "popis": "tón farby voči papieru (°)",
+    "ton_od": -155.895,
+    "poznamka_ton": "tón (atan2(db, da) v stupňoch) sa vyjadrí v rozsahu [ton_od, ton_od + 360) - kruh je rozstrihnutý v najväčšej medzere medzi hodnotami svetlých škvŕn",
+    "prah_cervena": 47.085,
+    "prah_zlta": 90.847,
+    "pravidlo": "tón <= prah_cervena -> do_cervena, tón > prah_zlta -> do_zlta, inak stred",
+    "podskupiny": {
+      "do_cervena": [
+        "Arthrobacter_Sp"
+      ],
+      "stred": [
+        "Rhodococcus_Degradans",
+        "Talaromyces_Purpureogenus",
+        "Exiguobacterium_Indicum",
+        "Curtobacterium_Flaccumfaciens",
+        "Sphingomonas_Aquatilis"
+      ],
+      "do_zlta": [
+        "Micrococcus_Sp"
+      ]
+    },
+    "nazvy_podskupin": {
+      "do_cervena": "do červena",
+      "stred": "žltooranžové",
+      "do_zlta": "čisto žlté"
+    },
+    "spolahlivost": 0.9696,
+    "overenie_po_karticakch": 0.9621,
+    "po_druhoch": {
+      "Arthrobacter_Sp": 0.9375,
+      "Curtobacterium_Flaccumfaciens": 1.0,
+      "Exiguobacterium_Indicum": 0.975,
+      "Micrococcus_Sp": 0.9062,
+      "Rhodococcus_Degradans": 1.0,
+      "Sphingomonas_Aquatilis": 0.9688,
+      "Talaromyces_Purpureogenus": 1.0
+    },
+    "po_druhoch_karticky": {
+      "Arthrobacter_Sp": 0.9375,
+      "Curtobacterium_Flaccumfaciens": 1.0,
+      "Exiguobacterium_Indicum": 0.975,
+      "Micrococcus_Sp": 0.875,
+      "Rhodococcus_Degradans": 1.0,
+      "Sphingomonas_Aquatilis": 0.9375,
+      "Talaromyces_Purpureogenus": 1.0
+    }
+  },
+  "stred_gabor": {
+    "krok": "stred_gabor",
+    "kedy": "škvrna je v skupine svetle a podľa tónu v strede (žltooranžové)",
+    "crta": "gabor_l32_odozva",
+    "popis": "sila hrubej textúry (Gaborov filter, λ = 32 px)",
+    "prah": 936.457,
+    "pravidlo": "gabor_l32_odozva > prah -> nad_prahom, inak pod_prahom",
+    "nad_prahom": [
+      "Talaromyces_Purpureogenus"
+    ],
+    "pod_prahom": [
+      "Curtobacterium_Flaccumfaciens",
+      "Exiguobacterium_Indicum",
+      "Rhodococcus_Degradans",
+      "Sphingomonas_Aquatilis"
+    ],
+    "nazvy": {
+      "nad_prahom": "hrubá textúra (pleseň)",
+      "pod_prahom": "jemnejšia textúra (baktérie)"
+    },
+    "parametre": {
+      "vlnova_dlzka": 32,
+      "orientacie": [
+        0,
+        45,
+        90,
+        135
+      ],
+      "sigma_ku_lambda": 0.56,
+      "gamma": 0.5,
+      "priemer_vyrezu": 256,
+      "poznamka": "ako gabor_features vo features.py: dL voči papieru, výrez preškálovaný na ekvivalentný priemer 256 px, priemer veľkosti komplexnej odozvy cez 4 smery"
+    },
+    "spolahlivost": 0.9938,
+    "overenie_po_karticakch": 0.985,
+    "po_druhoch": {
+      "Curtobacterium_Flaccumfaciens": 1.0,
+      "Exiguobacterium_Indicum": 1.0,
+      "Rhodococcus_Degradans": 1.0,
+      "Sphingomonas_Aquatilis": 1.0,
+      "Talaromyces_Purpureogenus": 0.9688
+    },
+    "po_druhoch_karticky": {
+      "Curtobacterium_Flaccumfaciens": 0.9643,
+      "Exiguobacterium_Indicum": 1.0,
+      "Rhodococcus_Degradans": 1.0,
+      "Sphingomonas_Aquatilis": 1.0,
+      "Talaromyces_Purpureogenus": 0.9375
+    }
+  },
+  "aktivne_kroky": {
+    "poznamka": "true = krok sa pouzije pri urcovani; false = krok ostava ulozeny, ale nepouzije sa. Prvy krok (jas) je vzdy aktivny.",
+    "krok_2": true,
+    "svetle_ton": true,
+    "stred_gabor": true,
+    "tmave_druhy": true,
+    "stred_hladke_druhy": true
+  },
+  "tmave_druhy": {
+    "kedy": "škvrna je v skupine tmave (5 plesní + tmavé fotky Rhodococcus)",
+    "pravidla": [
+      {
+        "crty": [
+          "zona1_dL"
+        ],
+        "popis": "jas vnútornej zóny škvrny voči papieru",
+        "druh": "Cladosporium_Pseudocladosporioides",
+        "druhy_v_otazke": [
+          "Cladosporium_Pseudocladosporioides",
+          "Rhodococcus_Degradans",
+          "Aspergillus_Ochraceus",
+          "Penicilium_Mangini",
+          "Epicoccum_Layunese",
+          "Alternaria_Alternata"
+        ],
+        "typ": "crta",
+        "crta": "zona1_dL",
+        "smer": "<=",
+        "prah": -50.2611,
+        "spolahlivost": 0.9857,
+        "overenie_po_vzorkach": 0.9857,
+        "po_druhoch": {
+          "Alternaria_Alternata": 1.0,
+          "Aspergillus_Ochraceus": 1.0,
+          "Cladosporium_Pseudocladosporioides": 0.9643,
+          "Epicoccum_Layunese": 0.95,
+          "Penicilium_Mangini": 1.0,
+          "Rhodococcus_Degradans": 1.0
+        }
+      },
+      {
+        "crty": [
+          "zona3_db"
+        ],
+        "popis": "žltosť (db) stredu škvrny",
+        "druh": "Rhodococcus_Degradans",
+        "fotky_pre_prah": "farba_dL_mean <= -8.006",
+        "druhy_v_otazke": [
+          "Rhodococcus_Degradans",
+          "Aspergillus_Ochraceus",
+          "Penicilium_Mangini",
+          "Epicoccum_Layunese",
+          "Alternaria_Alternata"
+        ],
+        "typ": "crta",
+        "crta": "zona3_db",
+        "smer": ">",
+        "prah": 16.8403,
+        "spolahlivost": 0.9867,
+        "overenie_po_vzorkach": 0.9713,
+        "po_druhoch": {
+          "Alternaria_Alternata": 1.0,
+          "Aspergillus_Ochraceus": 0.9333,
+          "Epicoccum_Layunese": 1.0,
+          "Penicilium_Mangini": 1.0,
+          "Rhodococcus_Degradans": 0.9231
+        }
+      },
+      {
+        "crty": [
+          "zona2_db"
+        ],
+        "popis": "žltosť (db) tretej zóny od okraja",
+        "druh": "Aspergillus_Ochraceus",
+        "druhy_v_otazke": [
+          "Aspergillus_Ochraceus",
+          "Penicilium_Mangini",
+          "Epicoccum_Layunese",
+          "Alternaria_Alternata"
+        ],
+        "typ": "crta",
+        "crta": "zona2_db",
+        "smer": ">",
+        "prah": 11.1446,
+        "spolahlivost": 0.9563,
+        "overenie_po_vzorkach": 0.9563,
+        "po_druhoch": {
+          "Alternaria_Alternata": 1.0,
+          "Aspergillus_Ochraceus": 0.85,
+          "Epicoccum_Layunese": 0.975,
+          "Penicilium_Mangini": 1.0
+        }
+      },
+      {
+        "crty": [
+          "zona_stred_minus_okraj_dL",
+          "zona_stred_minus_okraj_db"
+        ],
+        "popis": "zona_stred_minus_okraj_dL + zona_stred_minus_okraj_db",
+        "druh": "Penicilium_Mangini",
+        "druhy_v_otazke": [
+          "Penicilium_Mangini",
+          "Epicoccum_Layunese",
+          "Alternaria_Alternata"
+        ],
+        "typ": "dvojica",
+        "stred": [
+          -14.81032803030303,
+          -1.7655125000000003
+        ],
+        "mierka": [
+          9.61163291971721,
+          3.61419442088023
+        ],
+        "uhol": 30,
+        "prah": 1.0929772733336454,
+        "smer": -1,
+        "mierka_zony": 1.1439410264966452,
+        "neista_zona": 0.0,
+        "spolahlivost": 0.9833,
+        "overenie_po_vzorkach": 0.9833,
+        "po_druhoch": {
+          "Alternaria_Alternata": 1.0,
+          "Epicoccum_Layunese": 0.95,
+          "Penicilium_Mangini": 1.0
+        },
+        "v_neistej_zone": {
+          "uspesnost_urcenych": 0.9833,
+          "podiel_urcenych": 1.0
+        }
+      },
+      {
+        "crty": [
+          "lbp_P8R1_9",
+          "zona3_dL"
+        ],
+        "popis": "lbp_P8R1_9 + jas stredu škvrny",
+        "druh": "Epicoccum_Layunese",
+        "inak": "Alternaria_Alternata",
+        "druhy_v_otazke": [
+          "Epicoccum_Layunese",
+          "Alternaria_Alternata"
+        ],
+        "typ": "dvojica",
+        "stred": [
+          0.0872895,
+          -34.788633999999995
+        ],
+        "mierka": [
+          0.04560515362050653,
+          11.429170686714238
+        ],
+        "uhol": 48,
+        "prah": -0.26765628565155253,
+        "smer": 1,
+        "mierka_zony": 0.9826820963747255,
+        "neista_zona": 0.0,
+        "spolahlivost": 0.9542,
+        "overenie_po_vzorkach": 0.9458,
+        "po_druhoch": {
+          "Alternaria_Alternata": 0.9667,
+          "Epicoccum_Layunese": 0.925
+        },
+        "v_neistej_zone": {
+          "uspesnost_urcenych": 0.9458,
+          "podiel_urcenych": 1.0
+        }
+      }
+    ],
+    "poznamka": "otázky sa kladú postupne; splnená otázka určí druh, inak ďalšia otázka; pri dvojici čŕt v neistej zóne kľúč vráti všetky druhy otázky"
+  },
+  "stred_hladke_druhy": {
+    "kedy": "škvrna je v skupine stred – hladké (4 baktérie + svetlé fotky Aspergillus)",
+    "pravidla": [
+      {
+        "crty": [
+          "zona2_dL",
+          "farba_dL_p10"
+        ],
+        "popis": "zona2_dL + farba_dL_p10",
+        "druh": "Aspergillus_Ochraceus",
+        "fotky_pre_prah": "farba_dL_mean > -14.006",
+        "druhy_v_otazke": [
+          "Aspergillus_Ochraceus",
+          "Exiguobacterium_Indicum",
+          "Rhodococcus_Degradans",
+          "Curtobacterium_Flaccumfaciens",
+          "Sphingomonas_Aquatilis"
+        ],
+        "typ": "dvojica",
+        "stred": [
+          -5.464420732984293,
+          -8.17569507853403
+        ],
+        "mierka": [
+          4.939379722685314,
+          4.837315677593948
+        ],
+        "uhol": 144,
+        "prah": 0.35154952976204257,
+        "smer": -1,
+        "mierka_zony": 0.2518826571986118,
+        "neista_zona": 0.0,
+        "spolahlivost": 0.8971,
+        "overenie_po_vzorkach": 0.8876,
+        "po_druhoch": {
+          "Aspergillus_Ochraceus": 0.5333,
+          "Curtobacterium_Flaccumfaciens": 1.0,
+          "Exiguobacterium_Indicum": 1.0,
+          "Rhodococcus_Degradans": 0.9048,
+          "Sphingomonas_Aquatilis": 1.0
+        },
+        "v_neistej_zone": {
+          "uspesnost_urcenych": 0.8876,
+          "podiel_urcenych": 1.0
+        }
+      },
+      {
+        "crty": [
+          "zona1_db",
+          "farba_db_p50"
+        ],
+        "popis": "zona1_db + farba_db_p50",
+        "druh": "Exiguobacterium_Indicum",
+        "druhy_v_otazke": [
+          "Exiguobacterium_Indicum",
+          "Rhodococcus_Degradans",
+          "Curtobacterium_Flaccumfaciens",
+          "Sphingomonas_Aquatilis"
+        ],
+        "typ": "dvojica",
+        "stred": [
+          19.64472267857143,
+          19.27087625
+        ],
+        "mierka": [
+          15.636177452385041,
+          15.548963632883822
+        ],
+        "uhol": 138,
+        "prah": 0.04288063910119855,
+        "smer": -1,
+        "mierka_zony": 0.07740913328023281,
+        "neista_zona": 0.0,
+        "spolahlivost": 0.979,
+        "overenie_po_vzorkach": 0.9701,
+        "po_druhoch": {
+          "Curtobacterium_Flaccumfaciens": 1.0,
+          "Exiguobacterium_Indicum": 0.9875,
+          "Rhodococcus_Degradans": 0.8929,
+          "Sphingomonas_Aquatilis": 1.0
+        },
+        "v_neistej_zone": {
+          "uspesnost_urcenych": 0.9701,
+          "podiel_urcenych": 1.0
+        }
+      },
+      {
+        "crty": [
+          "farba_db_p90"
+        ],
+        "popis": "žltosť najžltšej časti škvrny (90. percentil db)",
+        "druh": "Rhodococcus_Degradans",
+        "druhy_v_otazke": [
+          "Rhodococcus_Degradans",
+          "Curtobacterium_Flaccumfaciens",
+          "Sphingomonas_Aquatilis"
+        ],
+        "typ": "crta",
+        "crta": "farba_db_p90",
+        "smer": "<=",
+        "prah": 28.1755,
+        "spolahlivost": 0.9688,
+        "overenie_po_vzorkach": 0.9583,
+        "po_druhoch": {
+          "Curtobacterium_Flaccumfaciens": 1.0,
+          "Rhodococcus_Degradans": 1.0,
+          "Sphingomonas_Aquatilis": 0.875
+        }
+      },
+      {
+        "crty": [
+          "zona_stred_minus_okraj_db",
+          "halo_da"
+        ],
+        "popis": "zona_stred_minus_okraj_db + halo_da",
+        "druh": "Curtobacterium_Flaccumfaciens",
+        "inak": "Sphingomonas_Aquatilis",
+        "druhy_v_otazke": [
+          "Curtobacterium_Flaccumfaciens",
+          "Sphingomonas_Aquatilis"
+        ],
+        "typ": "dvojica",
+        "stred": [
+          2.6493731666666664,
+          0.19878383333333327
+        ],
+        "mierka": [
+          4.282186617415022,
+          0.6919013849364462
+        ],
+        "uhol": 30,
+        "prah": -0.06696689506959919,
+        "smer": -1,
+        "mierka_zony": 0.9988380911588449,
+        "neista_zona": 0.0,
+        "spolahlivost": 0.9844,
+        "overenie_po_vzorkach": 0.9688,
+        "po_druhoch": {
+          "Curtobacterium_Flaccumfaciens": 1.0,
+          "Sphingomonas_Aquatilis": 0.9375
+        },
+        "v_neistej_zone": {
+          "uspesnost_urcenych": 0.9688,
+          "podiel_urcenych": 1.0
+        }
+      }
+    ],
+    "poznamka": "otázky sa kladú postupne; splnená otázka určí druh, inak ďalšia otázka; pri dvojici čŕt v neistej zóne kľúč vráti všetky druhy otázky"
+  }
+}

@@ -3,9 +3,11 @@ import { useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useJazyk } from '@/jazyk';
 import { Ikona } from '@/komponenty/ikona';
 import { KartaSkvrny } from '@/komponenty/karta-skvrny';
 import { Prepinac } from '@/komponenty/prepinac';
+import { PrepinacJazyka } from '@/komponenty/prepinac-jazyka';
 import { PrepinacSkvrn } from '@/komponenty/prepinac-skvrn';
 import { ZoznamSkvrn } from '@/komponenty/zoznam-skvrn';
 import { nacitajVysledok, poziadajONovySken } from '@/vypocty/vysledok-skenu';
@@ -13,11 +15,9 @@ import { FARBY, MEDZERA } from '@/vzhlad';
 
 type Pohlad = 'maska' | 'original' | 'vyrez';
 
-const REZIMY = { obrazok: 'Obrázok', dokument: 'Dokument' };
-
-const desatinne = (v: number) => v.toFixed(1).replace('.', ',');
-
 export default function Vysledok() {
+  const { t } = useJazyk();
+  const desatinne = (v: number) => v.toFixed(1).replace('.', t.oddelovacDesatin);
   const vysledok = nacitajVysledok();
   const [pohlad, setPohlad] = useState<Pohlad>('maska');
   const [aktivna, setAktivna] = useState(0);
@@ -33,7 +33,7 @@ export default function Vysledok() {
     return (
       <View style={styles.stranka}>
         <SafeAreaView style={[styles.obsah, styles.stred]} edges={['top', 'bottom']}>
-          <Text style={styles.prazdny}>Žiadny výsledok – najprv naskenuj vzorku.</Text>
+          <Text style={styles.prazdny}>{t.vysledok.ziadnyVysledok}</Text>
           <NovySken />
         </SafeAreaView>
       </View>
@@ -50,19 +50,20 @@ export default function Vysledok() {
           <Pressable onPress={() => router.back()} hitSlop={8} style={styles.spat}>
             <Ikona ios="chevron.left" android="arrow_back" />
           </Pressable>
-          <Text style={styles.nadpis}>Výsledok skenu</Text>
+          <Text style={styles.nadpis}>{t.vysledok.nadpis}</Text>
           <View style={styles.rezim}>
-            <Text style={styles.popisRezimu}>{REZIMY[vysledok.rezim]}</Text>
+            <Text style={styles.popisRezimu}>{t.rezimy[vysledok.rezim]}</Text>
           </View>
+          <PrepinacJazyka />
         </View>
 
         <ScrollView ref={stranka} contentContainerStyle={styles.zoznam}>
           <View style={styles.ram}>{uri && <Image source={{ uri }} style={styles.fotka} resizeMode="contain" />}</View>
           <Prepinac
             moznosti={[
-              ['maska', 'Maska'],
-              ['original', 'Originál'],
-              ['vyrez', 'Výrez'],
+              ['maska', t.pohlady.maska],
+              ['original', t.pohlady.original],
+              ['vyrez', t.pohlady.vyrez],
             ]}
             hodnota={pohlad}
             zmena={setPohlad}
@@ -70,7 +71,7 @@ export default function Vysledok() {
 
           {vysledok.skvrny.length === 0 ? (
             <View style={styles.karta}>
-              <Text style={styles.prazdny}>Nenašla sa žiadna škvrna, ktorú by sa dalo zaradiť.</Text>
+              <Text style={styles.prazdny}>{t.vysledok.ziadnaSkvrna}</Text>
             </View>
           ) : vysledok.skvrny.length === 1 ? (
             <KartaSkvrny skvrna={vysledok.skvrny[0]} />
@@ -84,12 +85,11 @@ export default function Vysledok() {
           )}
 
           <Text style={styles.poznamka}>
-            {vysledok.uspesnostKluca !== undefined && `Úspešnosť kľúča na testovacích fotkách ${Math.round(vysledok.uspesnostKluca * 100)} % · `}
-            spracovanie {desatinne(vysledok.trvanie / 1000)} s
+            {t.vysledok.overenieKluca(Math.round(vysledok.overenieKluca * 100))} · {t.vysledok.spracovanie(desatinne(vysledok.trvanie / 1000))}
           </Text>
           <Text style={styles.poznamka}>
-            Farebný profil fotky: {vysledok.profil ?? 'neuvedený (berie sa ako sRGB)'}
-            {vysledok.profil === 'Display P3' ? ' – prevedené do sRGB ako trénovacie dáta' : ''}
+            {t.vysledok.profil} {vysledok.profil ?? t.vysledok.profilNeuvedeny}
+            {vysledok.profil === 'Display P3' ? t.vysledok.prevedeneP3 : ''}
           </Text>
         </ScrollView>
 
@@ -100,6 +100,7 @@ export default function Vysledok() {
 }
 
 function NovySken() {
+  const { t } = useJazyk();
   const novy = () => {
     poziadajONovySken();
     if (router.canGoBack()) router.back();
@@ -108,7 +109,7 @@ function NovySken() {
   return (
     <Pressable onPress={novy} style={({ pressed }) => [styles.novySken, pressed && styles.stlacene]}>
       <Ikona ios="camera.fill" android="photo_camera" farba={FARBY.tmavomodra} velkost={18} />
-      <Text style={styles.popisNovehoSkenu}>Nový sken</Text>
+      <Text style={styles.popisNovehoSkenu}>{t.vysledok.novySken}</Text>
     </Pressable>
   );
 }

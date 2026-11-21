@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
+import { useJazyk } from '@/jazyk';
 import { Ikona } from '@/komponenty/ikona';
 import { KartaSkvrny } from '@/komponenty/karta-skvrny';
 import type { Skvrna } from '@/vypocty/vysledok-skenu';
@@ -10,6 +11,7 @@ type Props = { skvrny: Skvrna[]; aktivna: number; zmena: (index: number) => void
 
 /** Podrobný výsledok škvŕn po jednej: šípky alebo potiahnutie do strany prepnú na susednú škvrnu. */
 export function PrepinacSkvrn({ skvrny, aktivna, zmena }: Props) {
+  const { t } = useJazyk();
   const zoznam = useRef<FlatList<Skvrna>>(null);
   const [sirka, setSirka] = useState(0);
 
@@ -25,10 +27,8 @@ export function PrepinacSkvrn({ skvrny, aktivna, zmena }: Props) {
       <View style={styles.lista}>
         <Sipka smer="vlavo" povolena={aktivna > 0} stlac={() => prejdi(aktivna - 1)} />
         <View style={styles.stred}>
-          <Text style={styles.nazov}>{skvrny[aktivna].nazov}</Text>
-          <Text style={styles.poradie}>
-            {aktivna + 1} z {skvrny.length}
-          </Text>
+          <Text style={styles.nazov}>{t.skvrna.nazov(skvrny[aktivna].cislo)}</Text>
+          <Text style={styles.poradie}>{t.skvrna.poradie(aktivna + 1, skvrny.length)}</Text>
         </View>
         <Sipka smer="vpravo" povolena={aktivna < skvrny.length - 1} stlac={() => prejdi(aktivna + 1)} />
       </View>
@@ -36,7 +36,7 @@ export function PrepinacSkvrn({ skvrny, aktivna, zmena }: Props) {
         <FlatList
           ref={zoznam}
           data={skvrny}
-          keyExtractor={(skvrna) => skvrna.nazov}
+          keyExtractor={(skvrna, index) => String(skvrna.cislo ?? index)}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
