@@ -1,10 +1,24 @@
-import { aj, ajNie, jeNieco, kruh, mapaOblasti, maskaOblasti, oblastCislo, pocet, rozsirMasku, zuzMasku, type MapaOblasti, type Oblasti } from './binarne';
+import {
+  aj,
+  ajNie,
+  jeNieco,
+  kruh,
+  mapaOblasti,
+  maskaOblasti,
+  oblastCislo,
+  pocet,
+  rozsirMasku,
+  vyplnDieryMasky,
+  zuzMasku,
+  type MapaOblasti,
+  type Oblasti,
+} from './binarne';
 import { CasVyprsal, prestavka, teraz } from './cas';
-import { navrhniMiesta } from './dokument-miesta';
+import { navrhniMiesta, type Strana } from './dokument-miesta';
 import { mapaTlace, priprav } from './dokument-tlac';
-import { doplnZOkolia, zmenKubicky, zmenNajblizsi, zmenPlochou } from './filtre';
+import { zmenKubicky, zmenNajblizsi, zmenPlochou } from './filtre';
 import { kandidati, skore } from './maska';
-import { medianFarby, okolo, vyplnMimo, vyrez, vyrezObrazka, zaokruhli, type Obdlznik, type Obrazok } from './obrazok';
+import { medianFarby, vyplnMimo, vyrez, vyrezObrazka, zaokruhli, type Obdlznik, type Obrazok } from './obrazok';
 
 const OKNO_NASOBOK = 2.5;
 const OKNO_MIN = 48;
@@ -17,8 +31,11 @@ const VYREZ_NASOBOK = 2.0;
 const VYREZ_MIN_PLOCHA = 150;
 const ZLUCENIE = 0.3;
 
-/** Vyrezaná škvrna dokumentu – vstup pre určenie druhu; `zobrazenie` je ten istý výrez z pôvodnej fotky (bez odstraňovania textu). */
-export type Vyrez = { cislo: number; box: Obdlznik; obrazok: Obrazok; maska: Uint8Array; zobrazenie: Obrazok };
+/**
+ * Vyrezaná škvrna dokumentu – vstup pre určenie druhu. `box` je výrez s okrajom papiera, `skvrna` obdĺžnik
+ * samotnej škvrny a `zobrazenie` ten istý výrez z pôvodnej fotky (bez odstraňovania textu).
+ */
+export type Vyrez = { cislo: number; box: Obdlznik; skvrna: Obdlznik; obrazok: Obrazok; maska: Uint8Array; zobrazenie: Obrazok };
 
 /** Štvorcové okno okolo každého navrhnutého miesta (od najväčšieho). */
 function okna(navrh: MapaOblasti, w: number, h: number) {
@@ -91,26 +108,21 @@ function najlepsiaMaskaPri(obr: Obrazok, miesto: Uint8Array, koniec: number): Ui
   return Uint8Array.from(maskaOblasti(najlepsia.oblasti, W, H, najlepsia.ponechat), (v) => (v ? 1 : 0));
 }
 
-/** Výrez strany, v ktorom sa pixely textu dopočítajú z okolia. */
-function opravenyVyrez(obr: Obrazok, text: Uint8Array, box: Obdlznik, okraj = 12): Obrazok {
-  const [x0, y0, x1, y1] = box;
-  const vacsi = okolo(x0, y0, x1, y1, okraj, obr.sirka, obr.vyska);
-  const [X0, Y0, X1, Y1] = vacsi;
-  const vyrezany = vyrezObrazka(obr, vacsi);
-  const diera = vyrez(text, obr.sirka, vacsi);
-  const data = jeNieco(diera) ? doplnZOkolia(vyrezany.data, X1 - X0, Y1 - Y0, diera) : vyrezany.data;
-  return vyrezObrazka({ sirka: X1 - X0, vyska: Y1 - Y0, data }, [x0 - X0, y0 - Y0, x1 - X0, y1 - Y0]);
+/** Výrez strany bez textu; pixely mimo strany majú medián farby strany vo výreze (ako v analýzach). */
+function vyrezBezTextu(strana: Strana, box: Obdlznik): Obrazok {
+  const vyrezany = vyrezObrazka(strana.bezTextu, box);
+  const naStrane = vyrez(strana.maska, strana.obrazok.sirka, box);
+  const nIn = pocet(naStrane);
+  if (nIn > 0 && nIn < naStrane.length) vyplnMimo(vyrezany.data, naStrane, medianFarby(vyrezany.data, naStrane));
+  return vyrezany;
 }
 
 /** Maska vlastného algoritmu v jednom okne (v súradniciach okna, 0/1). */
-function maskaVOkne(obr: Obrazok, text: Uint8Array, strana: Uint8Array, navrh: MapaOblasti, box: Obdlznik, miesto: number, koniec: number) {
-  const w = obr.sirka;
+function maskaVOkne(strana: Strana, navrh: MapaOblasti, box: Obdlznik, miesto: number, koniec: number) {
+  const w = strana.obrazok.sirka;
   const bw = box[2] - box[0];
   const bh = box[3] - box[1];
-  const vyrezany = opravenyVyrez(obr, text, box);
-  const naStrane = vyrez(strana, w, box);
-  const nIn = pocet(naStrane);
-  if (nIn > 0 && nIn < naStrane.length) vyplnMimo(vyrezany.data, naStrane, medianFarby(vyrezany.data, naStrane));
+  const vyrezany = vyrezBezTextu(strana, box);
   const tohtoMiesta = oblastCislo(vyrez(navrh.cisla, w, box), miesto);
 
   const f = OKNO_STRANA / Math.max(bh, bw);
@@ -122,8 +134,8 @@ function maskaVOkne(obr: Obrazok, text: Uint8Array, strana: Uint8Array, navrh: M
 }
 
 /** Maska škvŕn na celej strane – vlastný algoritmus v okne okolo každého navrhnutého miesta. */
-async function najdiSkvrny(navrhMaska: Uint8Array, obr: Obrazok, text: Uint8Array, strana: Uint8Array, koniec: number) {
-  const { sirka: w, vyska: h } = obr;
+async function najdiSkvrny(navrhMaska: Uint8Array, strana: Strana, koniec: number) {
+  const { sirka: w, vyska: h } = strana.obrazok;
   const navrh = mapaOblasti(navrhMaska, w, h);
   const vsetkyOkna = okna(navrh, w, h);
   const maska = new Uint8Array(w * h);
@@ -141,7 +153,7 @@ async function najdiSkvrny(navrhMaska: Uint8Array, obr: Obrazok, text: Uint8Arra
     await prestavka();
     let vOkne: Uint8Array;
     try {
-      vOkne = maskaVOkne(obr, text, strana, navrh, box, miesto, koniec);
+      vOkne = maskaVOkne(strana, navrh, box, miesto, koniec);
     } catch (chyba) {
       if (!(chyba instanceof CasVyprsal)) throw chyba;
       casVyprsal = true;
@@ -150,7 +162,7 @@ async function najdiSkvrny(navrhMaska: Uint8Array, obr: Obrazok, text: Uint8Arra
     spracovanych++;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (vOkne[(y - y0) * (x1 - x0) + x - x0]) maska[y * w + x] = 1;
   }
-  return { maska: aj(maska, strana), okien: vsetkyOkna.length, spracovanych, casVyprsal };
+  return { maska: aj(maska, strana.maska), okien: vsetkyOkna.length, spracovanych, casVyprsal };
 }
 
 /** Zlúči blízke časti masky do jednej škvrny; vráti čísla skupín a ich [x, y, šírka, výška, plocha]. */
@@ -181,7 +193,8 @@ function zlucBlizke(maska: Uint8Array, w: number, h: number) {
   const korene = [...new Set(Array.from({ length: m.pocet }, (_, k) => koren(k + 1)))].sort((a, b) => a - b);
   const noveCislo = new Int32Array(m.pocet + 1);
   for (let c = 1; c <= m.pocet; c++) noveCislo[c] = korene.indexOf(koren(c)) + 1;
-  const skupiny = Int32Array.from(m.cisla, (c) => noveCislo[c]);
+  const skupiny = new Int32Array(m.cisla.length);
+  for (let i = 0; i < skupiny.length; i++) skupiny[i] = noveCislo[m.cisla[i]];
 
   const udaje = Array.from({ length: korene.length + 1 }, () => [Infinity, Infinity, -1, -1, 0]);
   for (let y = 0; y < h; y++) {
@@ -206,7 +219,8 @@ function vyrezZPovodnej(povodna: Obrazok, praca: Obrazok, [x0, y0, x1, y1]: Obdl
 }
 
 /** Každú škvrnu vyreže s okrajom papiera – ako detailný záber jednej škvrny. */
-function vyrezySkvrn(obr: Obrazok, povodna: Obrazok, text: Uint8Array, maska: Uint8Array, strana: Uint8Array): Vyrez[] {
+function vyrezySkvrn(strana: Strana, povodna: Obrazok, maska: Uint8Array): Vyrez[] {
+  const obr = strana.obrazok;
   const { sirka: w, vyska: h } = obr;
   const { skupiny, udaje } = zlucBlizke(maska, w, h);
   const vyrezy: Vyrez[] = [];
@@ -218,12 +232,11 @@ function vyrezySkvrn(obr: Obrazok, povodna: Obrazok, text: Uint8Array, maska: Ui
     const y0 = Math.max(0, y + (vyska >> 1) - (s >> 1));
     const box: Obdlznik = [x0, y0, Math.min(w, x0 + s), Math.min(h, y0 + s)];
     if (Math.min(box[2] - x0, box[3] - y0) < 40) continue;
-    const obrazok = opravenyVyrez(obr, text, box);
-    const naStrane = vyrez(strana, w, box);
-    if (pocet(naStrane) < naStrane.length && jeNieco(naStrane)) vyplnMimo(obrazok.data, naStrane, medianFarby(obrazok.data, naStrane));
+    const obrazok = vyrezBezTextu(strana, box);
     vyrezy.push({
       cislo: vyrezy.length + 1,
       box,
+      skvrna: [x, y, x + sirka, y + vyska],
       obrazok,
       maska: oblastCislo(vyrez(skupiny, w, box), i),
       zobrazenie: vyrezZPovodnej(povodna, obr, box),
@@ -245,11 +258,10 @@ const CISLICE = [
   [7, 5, 7, 1, 7],
 ];
 
-const CERVENA = [0, 0, 255];
 const BIELA = [255, 255, 255];
 const CIERNA = [0, 0, 0];
 
-/** Strana s červeným obrysom škvŕn a číslom každej škvrny (rovnaké poradie ako v zozname škvŕn). */
+/** Strana s bielym obrysom škvŕn a číslom pri každej škvrne (rovnaké poradie ako v zozname škvŕn). */
 function prehlad(obr: Obrazok, maska: Uint8Array, vyrezy: Vyrez[]): Obrazok {
   const { sirka: w, vyska: h } = obr;
   const out = obr.data.slice();
@@ -257,22 +269,27 @@ function prehlad(obr: Obrazok, maska: Uint8Array, vyrezy: Vyrez[]): Obrazok {
   const obdlznik = (x0: number, y0: number, x1: number, y1: number, farba: number[]) => {
     for (let y = Math.max(0, y0); y < Math.min(h, y1); y++) for (let x = Math.max(0, x0); x < Math.min(w, x1); x++) out.set(farba, 3 * (y * w + x));
   };
-  let okraj = ajNie(maska, zuzMasku(maska, w, h, kruh(1)));
-  const t = Math.max(1, hrubka >> 1);
-  if (t > 1) okraj = rozsirMasku(okraj, w, h, kruh((t - 1) / 2));
-  for (let i = 0; i < okraj.length; i++) if (okraj[i]) out.set(CERVENA, 3 * i);
+  // Ako cv2.drawContours(RETR_EXTERNAL, hrúbka): len vonkajší obrys (diery sa vyplnia), čiara hrúbky `hrubka` stredom na hranici.
+  const vonkajsia = vyplnDieryMasky(maska, w, h);
+  let okraj = ajNie(vonkajsia, zuzMasku(vonkajsia, w, h, kruh(1)));
+  if (hrubka > 1) okraj = rozsirMasku(okraj, w, h, kruh((hrubka - 1) / 2));
+  for (let i = 0; i < okraj.length; i++) if (okraj[i]) out.set(BIELA, 3 * i);
 
-  // Číslice 3 × 5 bodov, biele s čiernym lemom – nad obdĺžnikom výrezu, ak sa tam zmestia, inak pod ním.
+  // Číslice 3 × 5 bodov, biele s čiernym lemom – tesne nad ľavým horným rohom škvrny, ak sa tam zmestia, inak pod ňou.
   const bod = Math.max(2, zaokruhli((22 * hrubka) / 15));
   const vyskaCisla = 5 * bod;
-  for (const { cislo, box } of vyrezy) {
-    const [x0, y0, , y1] = box;
-    const spodok = y0 - vyskaCisla - 3 * hrubka > 0 ? y0 - hrubka : y1 + vyskaCisla + 3 * hrubka;
+  const medzera = 2 * hrubka;
+  for (const { cislo, skvrna } of vyrezy) {
+    const [sx0, sy0, , sy1] = skvrna;
+    const text = String(cislo);
+    const sirkaCisla = (4 * text.length - 1) * bod;
+    const vrch = sy0 - medzera - vyskaCisla - hrubka >= 0 ? sy0 - medzera - vyskaCisla : Math.min(h - vyskaCisla - hrubka, sy1 + medzera);
+    const lavo = Math.max(hrubka, Math.min(w - sirkaCisla - hrubka, sx0));
     const bunky: [number, number][] = [];
-    [...String(cislo)].forEach((znak, k) => {
+    [...text].forEach((znak, k) => {
       CISLICE[Number(znak)].forEach((riadok, ry) => {
         for (let rx = 0; rx < 3; rx++) {
-          if ((riadok >> (2 - rx)) & 1) bunky.push([x0 + hrubka + k * 4 * bod + rx * bod, spodok - vyskaCisla + ry * bod]);
+          if ((riadok >> (2 - rx)) & 1) bunky.push([lavo + k * 4 * bod + rx * bod, vrch + ry * bod]);
         }
       });
     });
@@ -293,9 +310,9 @@ export async function spracujStranu(praca: Obrazok, ilustracie: Obrazok | null, 
   kolo('mapa tlače');
   const { navrh, strana } = await navrhniMiesta(praca, tlac, priprava);
   kolo('text a návrh miest');
-  const skvrny = await najdiSkvrny(navrh, praca, strana.sLemom, strana.maska, koniec);
+  const skvrny = await najdiSkvrny(navrh, strana, koniec);
   kolo(`vlastný algoritmus (${skvrny.spracovanych} okien)`);
   const povodna = ilustracie ?? praca;
-  const vyrezy = vyrezySkvrn(praca, povodna, strana.sLemom, skvrny.maska, strana.maska);
+  const vyrezy = vyrezySkvrn(strana, povodna, skvrny.maska);
   return { ...skvrny, vyrezy, povodna, prehlad: prehlad(praca, skvrny.maska, vyrezy) };
 }

@@ -21,21 +21,22 @@ import {
 } from './binarne';
 import { prestavka } from './cas';
 import {
-  JAS,
+  JAS8,
   TMAVE_POZADIE,
+  gradientJasu,
   malyRozmer,
   mapaZMalehoObrazka,
   naLab,
   odhadPapiera,
   priprav,
-  vyplnPozadie,
   vyrezLab,
   type Lab,
   type MapaFarby,
   type Priprava,
 } from './dokument-tlac';
-import { doplnZOkolia, gauss, gradient, medianovyFilter, vzdialenost3, zmenNajblizsi, zmenPlochou } from './filtre';
-import { median, medianHistogramu, neparne, okolo, percentil, vyrez, type Obdlznik, type Obrazok } from './obrazok';
+import { gauss, medianovyFilter, vzdialenost3, zmenNajblizsi, zmenPlochou } from './filtre';
+import { inpaintTelea } from './inpaint';
+import { medianF32, neparne, okolo, percentil, vyrez, type Obdlznik, type Obrazok } from './obrazok';
 
 const SILNY_K = 4.0;
 const SLABY_K = 2.0;
@@ -63,10 +64,12 @@ const KUSOK_OKOLIE = 0.5;
 const KUSOK_OKOLIE_MIN = 15;
 const MAKKY_OKRAJ = 6.0;
 
-/** Rozobratá strana dokumentu (ako Strana v analýzach). */
+const f32 = Math.fround;
+
+/** Rozobratá strana dokumentu (ako Strana v analýzach); jas a lab sú vo float32. */
 export type Strana = {
   obrazok: Obrazok;
-  L8: Uint8Array;
+  jas: Float32Array;
   maska: Uint8Array;
   bezTextu: Obrazok;
   sLemom: Uint8Array;
@@ -80,13 +83,18 @@ export type Strana = {
 async function rozoberStranu(obr: Obrazok, tlacPrace: Uint8Array, priprava: Priprava): Promise<Strana> {
   const { sirka: w, vyska: h } = obr;
   const { L8, strana: maska, text } = priprava;
-  const bezTextu = vyplnPozadie(obr, text.sLemom, text.polomer);
-  await prestavka();
+  const { bezTextu } = text;
   const lab = naLab(bezTextu);
   const tlac = aj(tlacPrace, maska);
+  await prestavka();
   const papier = odhadPapiera(bezTextu, tlac, maska).oblast([0, 0, w, h]);
-  const textBezPozadia = Uint8Array.from(text.sLemom, (v, i) => (lab.L[i] < papier.L[i] - TMAVE_POZADIE ? 0 : v));
-  return { obrazok: obr, L8, maska, bezTextu, sLemom: text.sLemom, text: textBezPozadia, polomer: text.polomer, lab, papier, tlac };
+  const textBezPozadia = text.sLemom.slice();
+  const jas = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    if (lab.L[i] < f32(papier.L[i] - TMAVE_POZADIE)) textBezPozadia[i] = 0;
+    jas[i] = JAS8[L8[i]];
+  }
+  return { obrazok: obr, jas, maska, bezTextu, sLemom: text.sLemom, text: textBezPozadia, polomer: text.polomer, lab, papier, tlac };
 }
 
 /** Navrhnuté miesta škvŕn na strane a rozobratá strana. */
@@ -101,26 +109,18 @@ export async function navrhniMiesta(obr: Obrazok, tlac: Uint8Array, priprava?: P
 
 const najmensiaPlocha = (dlhsia: number) => Math.max(12, Math.trunc(dlhsia * dlhsia * 4e-6));
 
-/** Medián a 1,4826 · MAD hodnôt pod maskou (z histogramu po 0,01). */
+/** Medián (float32 ako np.median) a 1,4826 · MAD hodnôt pod maskou. */
 function sumPapiera(hodnoty: Float32Array, maska: Uint8Array) {
-  const KROK = 100;
-  const MAX = 30000;
-  const hist = new Int32Array(MAX + 1);
-  let spolu = 0;
-  for (let i = 0; i < hodnoty.length; i++) {
-    if (!maska[i]) continue;
-    hist[Math.min(Math.round(hodnoty[i] * KROK), MAX)]++;
-    spolu++;
-  }
-  if (spolu === 0) return { med: 0, mad: 1 };
-  const med2 = Math.round(2 * medianHistogramu(hist, spolu));
-  const odchylky = new Int32Array(2 * MAX + 2);
-  for (let b = 0; b <= MAX; b++) if (hist[b]) odchylky[Math.abs(2 * b - med2)] += hist[b];
-  return { med: med2 / 2 / KROK, mad: (1.4826 * medianHistogramu(odchylky, spolu)) / 2 / KROK };
+  const pod = new Float32Array(pocet(maska));
+  for (let i = 0, k = 0; i < hodnoty.length; i++) if (maska[i]) pod[k++] = hodnoty[i];
+  if (pod.length === 0) return { med: 0, mad: 1 };
+  const med = medianF32(pod);
+  for (let i = 0; i < pod.length; i++) pod[i] = Math.abs(f32(pod[i] - med));
+  return { med, mad: 1.4826 * medianF32(pod) };
 }
 
 /** Farebný rozdiel od papiera s prahom podľa šumu papiera a hysteréziou. */
-function rozdielOdPapiera({ lab, papier, maska: naStrane, obrazok }: Strana, tmavePovolene: Uint8Array): Uint8Array {
+export function rozdielOdPapiera({ lab, papier, maska: naStrane, obrazok }: Strana, tmavePovolene: Uint8Array): Uint8Array {
   const { sirka: w, vyska: h } = obrazok;
   const n = w * h;
   const dlhsia = Math.max(w, h);
@@ -129,37 +129,38 @@ function rozdielOdPapiera({ lab, papier, maska: naStrane, obrazok }: Strana, tma
   const teple0 = new Float32Array(n);
   const dL = new Float32Array(n);
   for (let i = 0; i < n; i++) {
-    dL[i] = lab.L[i] - papier.L[i];
-    const da = lab.A[i] - papier.A[i];
-    const db = lab.B[i] - papier.B[i];
-    const l = lab.L[i] - papier.L[i];
-    de0[i] = l > 2 && db < 2 && da < 2 ? 0 : Math.sqrt(0.25 * l * l + da * da + db * db);
-    sytost0[i] = Math.sqrt(da * da + db * db);
+    const l = (dL[i] = f32(lab.L[i] - papier.L[i]));
+    const da = f32(lab.A[i] - papier.A[i]);
+    const db = f32(lab.B[i] - papier.B[i]);
+    const pol = f32(0.5 * l);
+    de0[i] = l > 2 && db < 2 && da < 2 ? 0 : f32(Math.sqrt(f32(f32(f32(pol * pol) + f32(da * da)) + f32(db * db))));
+    sytost0[i] = f32(Math.hypot(da, db));
     teple0[i] = Math.max(da, db);
   }
   const sytost = gauss(sytost0, w, h, 1.2);
   const de = gauss(de0, w, h, 1.2);
   const teple = gauss(teple0, w, h, 1.2);
   const { med, mad } = sumPapiera(de, naStrane);
-  const silny = Math.max(med + SILNY_K * mad, SILNY_MIN);
-  const slaby = Math.max(med + SLABY_K * mad, SLABY_MIN);
+  const silny = f32(Math.max(med + SILNY_K * mad, SILNY_MIN));
+  const slaby = f32(Math.max(med + SLABY_K * mad, SLABY_MIN));
   for (let i = 0; i < n; i++) {
     const farebne = (sytost[i] >= MIN_SYTOST && teple[i] > 1.0) || (tmavePovolene[i] && dL[i] < -SLABY_MIN);
     if (!naStrane[i] || !farebne) de[i] = 0;
   }
-  let maska = hystereza(
-    Uint8Array.from(de, (v) => (v > slaby ? 1 : 0)),
-    Uint8Array.from(de, (v) => (v > silny ? 1 : 0)),
-    w,
-    h
-  );
+  const slabe = new Uint8Array(n);
+  const silne = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    if (de[i] > slaby) slabe[i] = 1;
+    if (de[i] > silny) silne[i] = 1;
+  }
+  let maska = hystereza(slabe, silne, w, h);
   maska = uzavriMasku(maska, w, h, kruh(Math.max(1, dlhsia / 600)));
   maska = vyplnVelkeObrysy(maska, w, h, najmensiaPlocha(dlhsia));
   return aj(maska, naStrane);
 }
 
 /** Vyradí nálezy pri okraji strany, v hustom texte, tlačené prvky a nálezy so slabým kontrastom. */
-function odfiltruj(nalezy: Uint8Array, strana: Strana): Uint8Array {
+export function odfiltruj(nalezy: Uint8Array, strana: Strana): Uint8Array {
   const { sirka: w, vyska: h } = strana.obrazok;
   const dlhsia = Math.max(w, h);
   const maska = odstranTlac(nalezy, strana, najmensiaPlocha(dlhsia));
@@ -167,6 +168,7 @@ function odfiltruj(nalezy: Uint8Array, strana: Strana): Uint8Array {
   for (let x = 0; x < w; x++) ramik[x] = ramik[(h - 1) * w + x] = 0;
   for (let y = 0; y < h; y++) ramik[y * w] = ramik[y * w + w - 1] = 0;
   const odOkraja = vzdialenost3(ramik, w, h);
+  const blizkoOkraja = f32(dlhsia * OKRAJ_STRANY);
 
   const vysledok = new Uint8Array(w * h);
   const m = mapaOblasti(maska, w, h);
@@ -176,7 +178,7 @@ function odfiltruj(nalezy: Uint8Array, strana: Strana): Uint8Array {
     const nalez = oblastVObdlzniku(m.cisla, w, box, c);
     const plocha = pocet(nalez);
 
-    const priOkraji = pocet(aj(nalez, Uint8Array.from(vyrez(odOkraja, w, box), (d) => (d < dlhsia * OKRAJ_STRANY ? 1 : 0))));
+    const priOkraji = pocet(aj(nalez, Uint8Array.from(vyrez(odOkraja, w, box), (d) => (d < blizkoOkraja ? 1 : 0))));
     if (priOkraji / plocha > 0.5) continue;
     if (vHustomTexte(m.cisla, c, okolo(...ohranicenie, 3 * strana.polomer + 2, w, h), plocha, strana) && !jeTeply(nalez, box, strana)) continue;
     if (tlacenyPrvok(nalez, box, strana)) continue;
@@ -203,16 +205,19 @@ function vHustomTexte(cisla: Int32Array, c: number, box: Obdlznik, plocha: numbe
   return pocet(aj(nalez, text)) / plocha > TEXT_VNUTRI || textOkolo > TEXT_OKOLO;
 }
 
-/** Posun do žlta alebo červena voči referencii a farba na teplej strane neutrálnej. */
+/** Posun do žlta alebo červena voči referencii a farba na teplej strane neutrálnej (float32 ako v numpy). */
 function teple(a: number, b: number, refA: number, refB: number): boolean {
-  return Math.max(a - refA, b - refB) >= TEPLY_POSUN && Math.max(a, b) > TEPLY_MIN;
+  return Math.max(f32(a - refA), f32(b - refB)) >= TEPLY_POSUN && Math.max(a, b) > TEPLY_MIN;
 }
+
+/** Mediány kanálov a*, b* pod maskou (np.median(..., axis=0) vo float32). */
+const medianyAB = (lab: Lab, maska: Uint8Array) => [medianF32(hodnotyPod(lab.A, maska)), medianF32(hodnotyPod(lab.B, maska))];
 
 function jeTeply(nalez: Uint8Array, box: Obdlznik, strana: Strana): boolean {
   const w = strana.obrazok.sirka;
-  const farba = vyrezLab(strana.lab, w, box);
-  const papier = vyrezLab(strana.papier, w, box);
-  return teple(median(hodnotyPod(farba.A, nalez)), median(hodnotyPod(farba.B, nalez)), median(hodnotyPod(papier.A, nalez)), median(hodnotyPod(papier.B, nalez)));
+  const [a, b] = medianyAB(vyrezLab(strana.lab, w, box), nalez);
+  const [pa, pb] = medianyAB(vyrezLab(strana.papier, w, box), nalez);
+  return teple(a, b, pa, pb);
 }
 
 /** Tlačený prvok: väčšina nálezu je tmavá a prechod na okraji je ostrý. */
@@ -220,15 +225,16 @@ function tlacenyPrvok(nalez: Uint8Array, box: Obdlznik, strana: Strana): boolean
   const { sirka: w, vyska: h } = strana.obrazok;
   const bw = box[2] - box[0];
   const bh = box[3] - box[1];
-  const jas = Float32Array.from(vyrez(strana.L8, w, box), (v) => v * JAS);
+  const jas = vyrez(strana.jas, w, box);
   const okolie = ajNie(rozsirMasku(nalez, bw, bh, kruh(3)), nalez);
   if (!jeNieco(okolie)) return false;
   const vnutri = hodnotyPod(jas, nalez);
   const tmavaUroven = percentil(vnutri, 10);
-  const kontrast = median(hodnotyPod(jas, okolie)) - tmavaUroven;
+  const kontrast = medianF32(hodnotyPod(jas, okolie)) - tmavaUroven;
   if (kontrast <= 0) return false;
-  const strmost = percentil(hodnotyPod(gradient(strana.L8, w, h, box), okrajovyPas(nalez, bw, bh)), 90) * JAS + 1e-3;
-  const tmavych = vnutri.filter((v) => v < tmavaUroven + 0.25 * kontrast).length;
+  const strmost = percentil(hodnotyPod(gradientJasu(strana.jas, w, h, box), okrajovyPas(nalez, bw, bh)), 90) + 1e-3;
+  const hranica = f32(tmavaUroven + 0.25 * kontrast);
+  const tmavych = vnutri.filter((v) => v < hranica).length;
   return tmavych / vnutri.length > TLAC_TMAVE && kontrast / strmost < TLAC_OKRAJ;
 }
 
@@ -245,8 +251,8 @@ function kontrastSOkolim(nalez: Uint8Array, plocha: number, [x0, y0, x1, y1]: Ob
   const pas = aj(ajNie(rozsirMasku(velky, gw, gh, kruh(g + 3)), rozsirMasku(velky, gw, gh, kruh(g))), vyrez(strana.maska, w, velkyBox));
   if (!jeNieco(pas)) return 0;
   const lab = vyrezLab(strana.lab, w, velkyBox);
-  const rozdiel = [lab.L, lab.A, lab.B].map((p) => median(hodnotyPod(p, velky)) - median(hodnotyPod(p, pas)));
-  return Math.hypot(rozdiel[0], rozdiel[1], rozdiel[2]);
+  const rozdiel = [lab.L, lab.A, lab.B].map((p) => f32(medianF32(hodnotyPod(p, velky)) - medianF32(hodnotyPod(p, pas))));
+  return f32(Math.sqrt(f32(f32(f32(rozdiel[0] * rozdiel[0]) + f32(rozdiel[1] * rozdiel[1])) + f32(rozdiel[2] * rozdiel[2]))));
 }
 
 /** Očakávaná farba tlače: ako odhad papiera, ale len z pixelov tlače a s menším oknom. */
@@ -255,12 +261,12 @@ function odhadTlace(strana: Strana): MapaFarby {
   const [sw, sh] = malyRozmer(w, h);
   const naTlaci = zmenNajblizsi(strana.tlac, 1, w, h, sw, sh);
   if (!jeNieco(naTlaci)) return { oblast: (box) => vyrezLab(strana.lab, w, box) };
-  const male = doplnZOkolia(zmenPlochou(strana.bezTextu.data, 3, w, h, sw, sh), sw, sh, nie(naTlaci));
+  const male = inpaintTelea(zmenPlochou(strana.bezTextu.data, 3, w, h, sw, sh), sw, sh, nie(naTlaci), 3);
   const okno = Math.min(neparne(Math.max(sw, sh) / OKNO_TLACE), 255);
   return mapaZMalehoObrazka(medianovyFilter(male, sw, sh, okno), sw, sh, w, h);
 }
 
-/** Lab v obdĺžniku rozmazaný Gaussom (sigma 2) z o niečo väčšieho okolia. */
+/** Lab v obdĺžniku rozmazaný Gaussom (sigma 2) z o niečo väčšieho okolia (jadro má polomer 8). */
 function hladkyLab(lab: Lab, w: number, h: number, [x0, y0, x1, y1]: Obdlznik): Lab {
   const vacsi = okolo(x0, y0, x1, y1, 8, w, h);
   const [X0, Y0, X1, Y1] = vacsi;
@@ -272,13 +278,13 @@ function hladkyLab(lab: Lab, w: number, h: number, [x0, y0, x1, y1]: Obdlznik): 
 /** Pixely, ktoré sú teplejšie alebo oveľa tmavšie, ako by mala byť tlač. */
 function odlisneOdTlace(farba: Lab, ocakavana: Lab): Uint8Array {
   return Uint8Array.from(farba.L, (L, i) => {
-    const tepla = teple(farba.A[i], farba.B[i], ocakavana.A[i], ocakavana.B[i]) && L <= ocakavana.L[i] + SVETLEJSIE_AKO_TLAC;
-    return tepla || L < ocakavana.L[i] - TMAVSIE_AKO_TLAC ? 1 : 0;
+    const tepla = teple(farba.A[i], farba.B[i], ocakavana.A[i], ocakavana.B[i]) && L <= f32(ocakavana.L[i] + SVETLEJSIE_AKO_TLAC);
+    return tepla || L < f32(ocakavana.L[i] - TMAVSIE_AKO_TLAC) ? 1 : 0;
   });
 }
 
 /** Z nálezov odstráni časti, ktoré sú len tlač (mapa tlače), a ponechá škvrny na tlači. */
-function odstranTlac(maska: Uint8Array, strana: Strana, minPlocha: number): Uint8Array {
+export function odstranTlac(maska: Uint8Array, strana: Strana, minPlocha: number): Uint8Array {
   const { sirka: w, vyska: h } = strana.obrazok;
   const ocakavanaTlac = odhadTlace(strana);
   const vysledok = new Uint8Array(w * h);
@@ -345,19 +351,15 @@ function skvrnaNaTlaci(
   const obal = konvexnyObal(obrys(naBity(kusok, bw, bh), prvy % bw, Math.trunc(prvy / bw)));
   if (plocha < KUSOK_KOMPAKTNOST * plochaObrysu(obal)) return false;
 
-  const tepla = teple(
-    median(hodnotyPod(farba.A, kusok)),
-    median(hodnotyPod(farba.B, kusok)),
-    median(hodnotyPod(ocakavana.A, kusok)),
-    median(hodnotyPod(ocakavana.B, kusok))
-  );
-  return tepla || !(sirkaOkraja(jas, kusok, bw, bh) < MAKKY_OKRAJ);
+  const [a, b] = medianyAB(farba, kusok);
+  const [oa, ob] = medianyAB(ocakavana, kusok);
+  return teple(a, b, oa, ob) || sirkaOkraja(jas, kusok, bw, bh) >= MAKKY_OKRAJ;
 }
 
 /** Šírka prechodu na okraji oblasti: kontrast voči okoliu / strmosť jasu na okraji. */
 function sirkaOkraja(jas: Float32Array, oblast: Uint8Array, bw: number, bh: number): number {
   const okolie = ajNie(rozsirMasku(oblast, bw, bh, kruh(6)), rozsirMasku(oblast, bw, bh, kruh(2)));
   if (!jeNieco(okolie)) return Infinity;
-  const kontrast = median(hodnotyPod(jas, okolie)) - percentil(hodnotyPod(jas, oblast), 10);
-  return kontrast / (percentil(hodnotyPod(gradient(jas, bw, bh, [0, 0, bw, bh]), okrajovyPas(oblast, bw, bh)), 90) + 1e-3);
+  const kontrast = medianF32(hodnotyPod(jas, okolie)) - percentil(hodnotyPod(jas, oblast), 10);
+  return kontrast / (percentil(hodnotyPod(gradientJasu(jas, bw, bh, [0, 0, bw, bh]), okrajovyPas(oblast, bw, bh)), 90) + 1e-3);
 }

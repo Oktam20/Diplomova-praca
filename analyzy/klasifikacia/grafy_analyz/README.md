@@ -4,11 +4,12 @@ Grafy skopírované zo starého backendu (`backend/backend_app/`), na základe k
 kľúč v `klasifikacia/` – výber čŕt, poradie otázok, prahy a ich hodnotenie. Priečinky majú
 rovnaké čísla ako sekcie v starom backende (tam sú aj skripty a CSV s výsledkami).
 
-> **Dôležité pri citovaní čísel.** Sekcie 03–07 sú počítané na **pôvodných maskách** datasetu
-> a na **celom datasete** (overenie po vzorkách / kartičkách, leave-one-out). Sekcie 10–11
-> už pracujú s rozdelením train / test. Aktuálny kľúč v `klasifikacia/` (nové masky, profil
-> Rýchly, črty z jadra škvrny, prahy len z train) má na teste 80,8 % fotiek – čísla nižšie preto
-> opisujú, **prečo** má kľúč takú štruktúru, nie výslednú úspešnosť (tá je v `klasifikacia/vysledky/`).
+> **Dôležité pri citovaní čísel.** Sekcie 03–06 sú počítané na **maskách datasetu** (sada 12 × 7
+> s pôvodným skóre, bez kontrastu) a na **celom datasete** (overenie po kartičkách, leave-one-out).
+> Sekcie 10–11 už pracujú s rozdelením na trénovaciu a testovaciu množinu. Súčasný kľúč
+> v `klasifikacia/` (masky profilu Rýchly, črty z jadra škvrny, prahy len z trénovacej množiny) má
+> na testovacej množine 80,8 % fotografií – čísla nižšie preto opisujú, **prečo** má kľúč takú
+> štruktúru, nie jeho výslednú úspešnosť (tá je v `klasifikacia/vysledky/`).
 
 **Spoločné pojmy**
 - **črty** – farba škvrny **voči papieru** v CIELAB: `dL` (< 0 = tmavšia), `da` (> 0 = červenšia),
@@ -27,7 +28,7 @@ rovnaké čísla ako sekcie v starom backende (tam sú aj skripty a CSV s výsle
 | [04_kluc_zakladne_kroky/](04_kluc_zakladne_kroky/) | horné poschodia kľúča: jas → sýtosť → tón → Gabor |
 | [05_kluc_nove_vetvy/](05_kluc_nove_vetvy/) | rozdelenie tmavých plesní (T1–T5) a hladkých baktérií (B1–B4) |
 | [06_hodnotenie_kluca/](06_hodnotenie_kluca/) | úspešnosť celého kľúča, zámeny, kde vznikajú chyby |
-| [07_aplikacia_vs_python/](07_aplikacia_vs_python/) | či aplikácia počíta rovnaké črty a rozhodne rovnako |
+| [07_aplikacia_vs_python/](07_aplikacia_vs_python/) | starší test zhody čŕt v aplikácii a v Pythone (nahradený, pozri nižšie) |
 | [10_rozdelenie_train_test/](10_rozdelenie_train_test/) | rozdelenie datasetu 80 / 20 po kartičkách |
 | [11_kluc_train_test/](11_kluc_train_test/) | kľúč na nových maskách: stavba na train, overenie na teste |
 | [pokusy/](pokusy/) | automatický strom a štatistický klasifikátor – prístupy, ktoré do výsledku nešli |
@@ -213,21 +214,21 @@ majú otázku aj v „cudzej“ vetve, lebo majú svetlé aj tmavé škvrny.
 
 ## 06 – Hodnotenie celého kľúča
 
-Výsledok fotky: **určený** (1 druh, správny), **v skupine** (správny je medzi viacerými),
-**zle**, **neisté**. Porovnávajú sa 3 verzie: len krok 1 / pôvodný kľúč (sekcia 04) / kľúč + nové
-vetvy. Overenie po vzorkách (127× bez jednej kartičky):
+Výsledok fotografie: **určený** (1 druh, správny), **v skupine** (správny je medzi viacerými),
+**zle**, **neisté**. Porovnávajú sa 3 verzie: len krok 1 / základný kľúč (kroky zo sekcie 04) /
+kľúč + nové vetvy. Overenie po kartičkách (127× bez jednej kartičky):
 
 | verzia | určený | v skupine | zle | druhov vo výsledku |
 |---|---|---|---|---|
 | len krok 1 | 0 % | 80,8 % | 6,4 % | 6,9 |
-| pôvodný kľúč | 17,1 % | 70,7 % | 12,2 % | 3,8 |
+| základný kľúč | 17,1 % | 70,7 % | 12,2 % | 3,8 |
 | **kľúč + vetvy** | **88,2 %** | – | **11,8 %** | **1,0** |
 
 | súbor | čo je na grafe | záver |
 |---|---|---|
 | `01_vysledok_druhov.png` | 3 panely (verzie), riadok = druh, pruh: určený / v skupine / zle / neisté | **hlavný graf výsledkov**; najviac chýb *Aspergillus* (25 %), *Talaromyces* a *Sphingomonas* (22 %) |
 | `02_uzly.png` | každá otázka: úspešnosť s uloženými prahmi vs. pri overení | všetky okrem sýtosti a B1 nad 95 %; pokles pri overení len pri sýtosti (85 → 77 %) |
-| `03_zameny.png` | matica zámen pôvodného kľúča (aj so skupinami) | väčšina fotiek ostane v skupinách |
+| `03_zameny.png` | matica zámen základného kľúča (aj so skupinami) | väčšina fotiek ostane v skupinách |
 | `03b_zameny_vetvy.png` | matica zámen finálneho kľúča | diagonála 75–96 %; *Aspergillus* → *Exiguobacterium* 12 %, *Rhodococcus* → *Exiguobacterium* 11 % |
 | `04_suhrn.png` | 3 verzie × (uložené, overenie) + priemerný počet druhov vo výsledku | 6,9 → 3,8 → 1,0 druhu; 0 → 17 → 88 % určených |
 | `05_kde_chyby.png` | druh × otázka, kde zle určená fotka zišla zo správnej cesty | najviac chýb v **kroku 1** (12 fotiek *Aspergillus*) a v tóne |
@@ -240,16 +241,12 @@ druhu vedľa seba (červený nadpis = zle určená). Vhodné do práce ako ilust
 
 ---
 
-## 07 – Aplikácia vs. Python
+## 07 – Aplikácia vs. Python (starší test)
 
-Porovnanie na 24 fotkách (2 na druh), či TypeScript prepis v aplikácii počíta rovnaké črty a kľúč
-rozhodne rovnako. (Robené s pôvodnou maskou aplikácie 5 kanálov × 3 metódy.)
-| súbor | čo je na grafe | záver |
-|---|---|---|
-| `01_rozdiely_mierka.png` | medián \|aplikácia − Python\| pre jas, sýtosť, tón, Gabor; farba = maska | rozdiely zanedbateľné (jas < 0,08, tón < 0,21°, Gabor < 0,5 %) |
-| `02_zhoda_kluca.png` | správny druh vo výsledku, IoU masky s datasetom, čas masky | maska aplikácie 145 ms vs. 563 ms, na 2 fotkách z 24 iná oblasť (IoU 0) |
-| `03_aplikacia_vs_python.png` | črta v aplikácii vs. v Pythone (body na uhlopriečke = zhoda) | zhoda, 2 odľahlé fotky |
-| `04_crty_kluca.png` | rozdiel každej črty kľúča v smerodajných odchýlkach | **dôkaz, že kľúč v aplikácii = kľúč v práci**: 24/24 rovnaký výsledok s maskou datasetu |
+Starší test na 24 fotografiách (2 na druh): rovnaké črty a rovnaké rozhodnutie kľúča v aplikácii
+a v Pythone pri rovnakej maske (24 z 24), rozdiely čŕt zanedbateľné. Grafy v priečinku sú robené so
+staršou sadou kanálov masky. Súčasnú zhodu aplikácie s analýzami (bit po bite rovnaké masky na
+detailných záberoch aj stranách dokumentov) popisuje [app/README.md](../../../app/README.md).
 
 ---
 
@@ -263,25 +260,28 @@ train 101 kartičiek / 385 fotiek, test 26 / 99. Každý druh je v teste.
 
 ## 11 – Kľúč na nových maskách: train → test
 
-Porovnanie variantov kľúča (masky profilu Rýchly), vybraný podľa krížovej validácie na train.
+Porovnanie variantov kľúča na maskách datasetu a na nových maskách (profil Rýchly), vybraný podľa
+krížovej validácie na trénovacej množine. Črty sa tu ešte počítali z celej masky, nie z jadra škvrny.
 | súbor | čo je na grafe |
 |---|---|
-| `01_varianty.png` | podiel fotiek určený / zle pre varianty V0p, V1p (pôvodné masky), V0, V1, V2 (nové masky) – train (krížová validácia) a test; ★ = vybraný |
+| `01_varianty.png` | podiel fotiek určený / zle pre varianty V0p, V1p (masky datasetu), V0, V1, V2 (nové masky) – train (krížová validácia) a test; ★ = vybraný |
 | `02_otazky.png` | otázky vetiev: úspešnosť pôvodnej črty vs. najlepšej jednej črty a dvojice vybranej nanovo na train |
 | `03_po_druhoch_test.png` | podiel testovacích fotiek druhu určených správne (pôvodný → nový kľúč); malé počty – 1 kartička = 4 fotky |
 | `04_zameny_test.png` | kam padajú testovacie fotky každého druhu; rámik = správny výsledok |
 
 | variant | train (CV) | test |
 |---|---|---|
-| V0p pôvodné masky, pôvodný kľúč | 90,1 % | 87,9 % |
-| V1p pôvodné masky, prahy z train | 87,0 % | 79,8 % |
+| V0p masky datasetu, prahy z celého datasetu | 90,1 % | 87,9 % |
+| V1p masky datasetu, prahy z train | 87,0 % | 79,8 % |
 | V0 nové masky, pôvodné prahy | 80,8 % | 75,8 % |
 | **V1 nové masky, pôvodné črty, prahy z train** (vybraný) | 79,0 % | 74,7 % |
 | V2 nové masky, črty vetiev vybrané na train | 75,6 % | 72,7 % |
 
 **Záver:** nanovo vyberané črty (V2) sú na train CV horšie než pôvodná štruktúra (V1) – preto
 kľúč ponecháva pôvodnú štruktúru a z train učí len prahy (tak funguje aj `klasifikacia/kluc.py`).
-Na nových maskách je úspešnosť nižšia než na pôvodných; najťažšie sú *Sphingomonas*,
+Na nových maskách je úspešnosť nižšia než na maskách datasetu, lebo nové masky zachytia aj bledý
+okraj kolónie. To vyriešili až črty z jadra škvrny (`klasifikacia/vyber_jadra.py`): súčasný kľúč má
+82,6 % v krížovej validácii a 80,8 % na testovacej množine. Najťažšie sú *Sphingomonas*,
 *Micrococcus*, *Talaromyces*, *Penicillium* a *Aspergillus*.
 
 ---

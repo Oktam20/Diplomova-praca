@@ -61,6 +61,44 @@ export function median(hodnoty: ArrayLike<number>): number {
   return percentil(hodnoty, 50);
 }
 
+/** k-ta najmenšia hodnota poľa (quickselect, pole sa preusporiada: vľavo od k sú menšie alebo rovné hodnoty). */
+function vyber(v: Float32Array, k: number): number {
+  let l = 0;
+  let r = v.length - 1;
+  while (r > l) {
+    const pivot = v[(l + r) >> 1];
+    let i = l;
+    let j = r;
+    while (i <= j) {
+      while (v[i] < pivot) i++;
+      while (v[j] > pivot) j--;
+      if (i <= j) {
+        const t = v[i];
+        v[i] = v[j];
+        v[j] = t;
+        i++;
+        j--;
+      }
+    }
+    if (k <= j) r = j;
+    else if (k >= i) l = i;
+    else break;
+  }
+  return v[k];
+}
+
+/** np.median poľa float32 – výsledok je float32 (pri párnom počte priemer dvoch stredných hodnôt vo float32). */
+export function medianF32(hodnoty: ArrayLike<number>): number {
+  const n = hodnoty.length;
+  if (n === 0) return NaN;
+  const v = Float32Array.from(hodnoty);
+  const horny = vyber(v, n >> 1);
+  if (n % 2) return horny;
+  let dolny = -Infinity;
+  for (let i = 0; i < n >> 1; i++) if (v[i] > dolny) dolny = v[i];
+  return Math.fround(Math.fround(dolny + horny) / 2);
+}
+
 /** Medián hodnôt zapísaných ako histogram (index = hodnota). */
 export function medianHistogramu(hist: Int32Array, spolu: number): number {
   const hodnotaNa = (poradie: number) => {

@@ -6,9 +6,9 @@ import { zaokruhli } from './obrazok';
 import { CAS_OBRAZOK, spracuj, type Poziadavka, type VysledokDokumentu, type VysledokObrazka, type VysledokUrcenia } from './postup';
 import { vypocitajVoWebView } from './webview';
 
+/** Dlhšia strana fotky: ako max_strana v najdi_masku a TLAC_STRANA v dokumenty/dokument_tlac.py (pracovnú stranu 1600 px si zmenší postup.ts). */
 const STRANA_OBRAZKA = 1200;
-const STRANA_DOKUMENTU = 1600;
-const STRANA_TLACE = 2400;
+const STRANA_DOKUMENTU = 2400;
 
 /** Kde ostal podklad na určenie druhu (WebView alebo aplikácia). */
 export type Podklad = { cislo: number; voWebView: boolean };
@@ -79,12 +79,9 @@ export async function najdiNaObrazku(uri: string): Promise<Detekcia> {
 export async function najdiNaDokumente(uri: string): Promise<Detekcia> {
   const zaciatok = Date.now();
   const povodna = await ImageManipulator.manipulate(uri).renderAsync();
-  const dlhsia = Math.max(povodna.width, povodna.height);
-  const zmensena = async (strana: number) => (await zmensenaFotka(uri, povodna.width, povodna.height, strana)).base64;
-  const praca = await zmensena(STRANA_DOKUMENTU);
-  const ilustracie = dlhsia > STRANA_DOKUMENTU ? await zmensena(STRANA_TLACE) : null;
+  const fotka = await zmensenaFotka(uri, povodna.width, povodna.height, STRANA_DOKUMENTU);
   const nacitanie = `načítanie ${sekundy(zaciatok)} s`;
-  const { vysledok: v, voWebView } = await vypocitaj<VysledokDokumentu>({ druh: 'dokument', praca, ilustracie });
+  const { vysledok: v, voWebView } = await vypocitaj<VysledokDokumentu>({ druh: 'dokument', png: fotka.base64 });
   vypisCasy('Dokument', voWebView, v, zaciatok, nacitanie);
 
   let sprava: SpravaDetekcie | null = null;

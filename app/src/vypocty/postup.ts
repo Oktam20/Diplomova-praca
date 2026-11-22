@@ -2,20 +2,24 @@ import { JAZYKY, type Jazyk } from '../preklady';
 import { jeNieco } from './binarne';
 import { CasVyprsal, stopky, teraz } from './cas';
 import { spracujStranu, type Vyrez } from './dokument';
-import { zmenNajblizsi } from './filtre';
+import { zmenNajblizsi, zmenPlochou } from './filtre';
 import { OVERENIE_KLUCA, urciFotku, urciVyrezy, type Skvrna } from './kluc';
 import { najdiMasku, vyrezMaskou } from './maska';
-import type { Obrazok } from './obrazok';
+import { zaokruhli, type Obrazok } from './obrazok';
 import { naBase64, nacitajPng, pngFarebny, pngSivy, zBase64 } from './png';
+import { nacitajJadra } from './wasm/jadra';
 
 /** Časový limit výpočtu v sekundách. */
 export const CAS_OBRAZOK = 90;
 const CAS_DOKUMENT = 120;
 
+/** PRACOVNA_STRANA v dokumenty/dokument.py. */
+const PRACOVNA_STRANA = 1600;
+
 /** Požiadavka na výpočet – obrázky ako PNG v base64. */
 export type Poziadavka =
   | { druh: 'obrazok'; png: string }
-  | { druh: 'dokument'; praca: string; ilustracie: string | null }
+  | { druh: 'dokument'; png: string }
   | { druh: 'urci'; podklad: number; jazyk: Jazyk };
 
 type Spolocne = { sirka: number; vyska: number; profil: string | null; casy: string[]; podklad: number | null };
@@ -70,16 +74,29 @@ async function obrazok(png: string): Promise<VysledokObrazka> {
   }
 }
 
-async function dokument(pracovny: string, sIlustraciami: string | null): Promise<VysledokDokumentu> {
+/**
+ * Pracovná strana (dlhšia strana najviac 1600 px) zmenšená z fotky ako v spracuj_stranu v analýzach:
+ * cv2.resize(povodny, None, fx=f, fy=f, interpolation=cv2.INTER_AREA).
+ */
+function pracovnaStrana(povodna: Obrazok): Obrazok {
+  const { sirka: w, vyska: h } = povodna;
+  const f = Math.min(1, PRACOVNA_STRANA / Math.max(w, h));
+  if (f === 1) return povodna;
+  const sirka = zaokruhli(w * f);
+  const vyska = zaokruhli(h * f);
+  return { sirka, vyska, data: zmenPlochou(povodna.data, 3, w, h, sirka, vyska, f, f) };
+}
+
+async function dokument(png: string): Promise<VysledokDokumentu> {
   const { casy, kolo } = stopky();
-  const praca = nacitaj(pracovny);
-  const ilustracie = sIlustraciami ? nacitaj(sIlustraciami) : null;
+  const povodna = nacitaj(png);
+  const praca = { ...pracovnaStrana(povodna), profil: povodna.profil };
+  const ilustracie = praca.sirka !== povodna.sirka ? povodna : null;
   kolo('dekódovanie');
   const { sirka, vyska } = praca;
   const s = await spracujStranu(praca, ilustracie, teraz() + CAS_DOKUMENT, kolo);
   const maska = Uint8Array.from(s.maska, (v) => (v ? 255 : 0));
   const nasiel = jeNieco(s.maska);
-  const { povodna } = s;
   const maskaPovodnej = zmenNajblizsi(maska, 1, sirka, vyska, povodna.sirka, povodna.vyska);
   const vysledok = {
     sirka,
@@ -108,7 +125,8 @@ function urci(cislo: number, jazyk: Jazyk): VysledokUrcenia {
 
 /** Výsledok podľa druhu požiadavky: VysledokObrazka, VysledokDokumentu alebo VysledokUrcenia. */
 export async function spracuj(p: Poziadavka): Promise<unknown> {
+  await nacitajJadra();
   if (p.druh === 'obrazok') return obrazok(p.png);
-  if (p.druh === 'dokument') return dokument(p.praca, p.ilustracie);
+  if (p.druh === 'dokument') return dokument(p.png);
   return urci(p.podklad, p.jazyk);
 }

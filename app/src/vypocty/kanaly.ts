@@ -28,6 +28,10 @@ const ODMOCNINA = Int32Array.from({ length: (256 * 3) / 2 * (1 << GAMA_POSUN) },
   const x = i / (255 * (1 << GAMA_POSUN));
   return zaokruhli((1 << LAB_POSUN2) * (x < 216 / 24389 ? x * (841 / 108) + 16 / 116 : Math.cbrt(x)));
 });
+// OpenCV počíta tretiu odmocninu v softfloat a v dvoch položkách sa líši od Math.cbrt o 1 –
+// s touto opravou sedí BGR -> Lab so všetkými 16,7 mil. farbami (overené voči cv2 4.11).
+ODMOCNINA[49] -= 1;
+ODMOCNINA[628] += 1;
 const D65 = [0.950456, 1, 1.088754];
 const C = [0.412453, 0.35758, 0.180423, 0.212671, 0.71516, 0.072169, 0.019334, 0.119193, 0.950227].map((c, i) =>
   zaokruhli(((1 << LAB_POSUN) * c) / D65[Math.floor(i / 3)])

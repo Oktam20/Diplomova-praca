@@ -502,11 +502,15 @@ export function mapaOblasti(m: Uint8Array, w: number, h: number): MapaOblasti {
 
 /** Maska pixelov, ktorých oblasť je vybraná (ponechat[cislo] = 1). */
 export function vybraneOblasti(cisla: Int32Array, ponechat: Uint8Array): Uint8Array {
-  return Uint8Array.from(cisla, (c) => ponechat[c]);
+  const out = new Uint8Array(cisla.length);
+  for (let i = 0; i < cisla.length; i++) out[i] = ponechat[cisla[i]];
+  return out;
 }
 
 export function oblastCislo(cisla: Int32Array, c: number): Uint8Array {
-  return Uint8Array.from(cisla, (v) => (v === c ? 1 : 0));
+  const out = new Uint8Array(cisla.length);
+  for (let i = 0; i < cisla.length; i++) if (cisla[i] === c) out[i] = 1;
+  return out;
 }
 
 /** Maska oblasti c v obdĺžniku [x0, y0, x1, y1). */
@@ -519,11 +523,34 @@ export function oblastVObdlzniku(cisla: Int32Array, w: number, [x0, y0, x1, y1]:
   return out;
 }
 
-export const aj = (a: Uint8Array, b: Uint8Array) => Uint8Array.from(a, (v, i) => (v && b[i] ? 1 : 0));
-export const ajNie = (a: Uint8Array, b: Uint8Array) => Uint8Array.from(a, (v, i) => (v && !b[i] ? 1 : 0));
-export const nie = (a: Uint8Array) => Uint8Array.from(a, (v) => (v ? 0 : 1));
-export const jeNieco = (m: Uint8Array) => m.some((v) => v !== 0);
-export const pocet = (m: Uint8Array) => m.reduce((s, v) => s + (v ? 1 : 0), 0);
+export function aj(a: Uint8Array, b: Uint8Array): Uint8Array {
+  const out = new Uint8Array(a.length);
+  for (let i = 0; i < a.length; i++) if (a[i] && b[i]) out[i] = 1;
+  return out;
+}
+
+export function ajNie(a: Uint8Array, b: Uint8Array): Uint8Array {
+  const out = new Uint8Array(a.length);
+  for (let i = 0; i < a.length; i++) if (a[i] && !b[i]) out[i] = 1;
+  return out;
+}
+
+export function nie(a: Uint8Array): Uint8Array {
+  const out = new Uint8Array(a.length);
+  for (let i = 0; i < a.length; i++) if (!a[i]) out[i] = 1;
+  return out;
+}
+
+export function jeNieco(m: Uint8Array): boolean {
+  for (let i = 0; i < m.length; i++) if (m[i]) return true;
+  return false;
+}
+
+export function pocet(m: Uint8Array): number {
+  let s = 0;
+  for (let i = 0; i < m.length; i++) if (m[i]) s++;
+  return s;
+}
 
 /** Hodnoty roviny tam, kde je maska. */
 export function hodnotyPod(rovina: ArrayLike<number>, maska: Uint8Array): number[] {
