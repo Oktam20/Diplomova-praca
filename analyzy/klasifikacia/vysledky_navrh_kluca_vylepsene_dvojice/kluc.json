@@ -1,0 +1,234 @@
+{
+ "nastavenia": {
+  "crty": "vylepsene",
+  "jadro": 0.45,
+  "papier": "lokálny odhad (crty.py)",
+  "dvojice": true,
+  "istota": 0.9,
+  "min_istota": 0.75,
+  "max_strana": 1200,
+  "fotiek_train": 385
+ },
+ "crty": {
+  "farba_dL_mean": "jas (priemer)",
+  "farba_dL_p10": "jas (10. percentil)",
+  "farba_da_p10": "červenosť (10. percentil)",
+  "farba_db_p50": "žltosť (medián)",
+  "farba_db_p90": "žltosť (90. percentil)",
+  "farba_odtien_deg": "tón (°)",
+  "gabor_l32_odozva": "hrubá textúra (Gabor, λ = 32 px)",
+  "zona3_dL": "jas zóny 3",
+  "zona_stred_minus_okraj_dL": "jas stred − okraj",
+  "zona_stred_minus_okraj_da": "červenosť stred − okraj"
+ },
+ "kroky": [
+  {
+   "krok": 1,
+   "crta": "farba_dL_mean",
+   "nazov": "jas (priemer)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -48.8606,
+   "skore": 0.9949,
+   "ano": {
+    "druh": "Cladosporium"
+   },
+   "nie": {
+    "krok": 2
+   },
+   "zdovodnenie": "farba; medián Cladosporium −51,57, najbližší druh Epicoccum −34,71; správne zaradených 99 % (priemer cez druhy); prekryv pixelov Cladosporium–Epicoccum 0,16"
+  },
+  {
+   "krok": 2,
+   "crta": "farba_da_p10",
+   "nazov": "červenosť (10. percentil)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -1.833,
+   "skore": 0.9924,
+   "ano": {
+    "druh": "Micrococcus"
+   },
+   "nie": {
+    "krok": 3
+   },
+   "zdovodnenie": "farba; medián Micrococcus −2,83, najbližší druh Sphingomonas 0,26; správne zaradených 99 % (priemer cez druhy); prekryv pixelov Micrococcus–Sphingomonas 0,13"
+  },
+  {
+   "krok": 3,
+   "crta": "farba_db_p90",
+   "nazov": "žltosť (90. percentil)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 27.8706,
+   "skore": 0.9917,
+   "ano": {
+    "krok": 4
+   },
+   "nie": {
+    "krok": 5
+   },
+   "zdovodnenie": "farba; medián Rhodococcus 19,98, najbližší druh Sphingomonas 33,11; správne zaradených 99 % (priemer cez druhy); prekryv pixelov Rhodococcus–Sphingomonas 0,07"
+  },
+  {
+   "krok": 4,
+   "crta": "farba_dL_p10",
+   "nazov": "jas (10. percentil)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -42.0023,
+   "skore": 0.9619,
+   "ano": {
+    "druh": "Epicoccum"
+   },
+   "nie": {
+    "krok": 6
+   },
+   "zdovodnenie": "farba; medián Epicoccum −47,65, najbližší druh Alternaria −35,01; správne zaradených 96 % (priemer cez druhy); prekryv pixelov Epicoccum–Alternaria 0,20"
+  },
+  {
+   "krok": 5,
+   "crta": "zona_stred_minus_okraj_da",
+   "nazov": "červenosť stred − okraj",
+   "uroven": "zóny a lem",
+   "podmienka": "<=",
+   "prah": 1.1731,
+   "skore": 0.9375,
+   "ano": {
+    "druh": "Sphingomonas"
+   },
+   "nie": {
+    "druh": "Curtobacterium"
+   },
+   "zdovodnenie": "zóny a lem; medián Sphingomonas 0,05, najbližší druh Curtobacterium 1,85; správne zaradených 94 % (priemer cez druhy); prekryv pixelov Sphingomonas–Curtobacterium 0,33"
+  },
+  {
+   "krok": 6,
+   "crta": "farba_odtien_deg",
+   "nazov": "tón (°)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 38.7645,
+   "skore": 0.9717,
+   "ano": {
+    "druh": "Arthrobacter"
+   },
+   "nie": {
+    "krok": 7
+   },
+   "zdovodnenie": "farba; medián Arthrobacter 28,18, najbližší druh Alternaria 51,28; správne zaradených 97 % (priemer cez druhy); prekryv pixelov Arthrobacter–Alternaria 0,01"
+  },
+  {
+   "krok": 7,
+   "crta": "farba_dL_mean",
+   "nazov": "jas (priemer)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -3.2295,
+   "skore": 0.9531,
+   "ano": {
+    "krok": 8
+   },
+   "nie": {
+    "druh": "Exiguobacterium"
+   },
+   "zdovodnenie": "farba; medián Talaromyces −6,28, najbližší druh Exiguobacterium −2,03; správne zaradených 95 % (priemer cez druhy); prekryv pixelov Talaromyces–Exiguobacterium 0,20"
+  },
+  {
+   "krok": 8,
+   "crta": "farba_dL_p10",
+   "nazov": "jas (10. percentil)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -29.3898,
+   "skore": 0.9417,
+   "ano": {
+    "druh": "Alternaria"
+   },
+   "nie": {
+    "krok": 9
+   },
+   "zdovodnenie": "farba; medián Alternaria −35,01, najbližší druh Aspergillus −22,56; správne zaradených 94 % (priemer cez druhy); prekryv pixelov Alternaria–Aspergillus 0,03"
+  },
+  {
+   "krok": 9,
+   "crta": "farba_db_p50",
+   "nazov": "žltosť (medián)",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 7.4409,
+   "skore": 0.9583,
+   "ano": {
+    "druh": "Penicilium"
+   },
+   "nie": {
+    "krok": 10
+   },
+   "zdovodnenie": "farba; medián Penicilium 6,17, najbližší druh Talaromyces 11,63; správne zaradených 96 % (priemer cez druhy); prekryv pixelov Penicilium–Talaromyces 0,04"
+  },
+  {
+   "krok": 10,
+   "crty": [
+    "gabor_l32_odozva",
+    "zona3_dL"
+   ],
+   "stred": [
+    851.709,
+    -13.9433
+   ],
+   "mierka": [
+    319.2576,
+    9.2475
+   ],
+   "uhol": 42,
+   "nazov": "dvojica: hrubá textúra (Gabor, λ = 32 px) a jas zóny 3 (priamka pod uhlom 42°)",
+   "uroven": "dvojica čŕt",
+   "podmienka": "<=",
+   "prah": 0.6239,
+   "skore": 1.0,
+   "ano": {
+    "krok": 11
+   },
+   "nie": {
+    "druh": "Talaromyces"
+   },
+   "zdovodnenie": "dvojica čŕt; medián Rhodococcus −0,43, najbližší druh Talaromyces 1,23; správne zaradených 100 % (priemer cez druhy); prekryv pixelov Rhodococcus–Talaromyces 0,35"
+  },
+  {
+   "krok": 11,
+   "crty": [
+    "zona_stred_minus_okraj_dL",
+    "farba_dL_p10"
+   ],
+   "stred": [
+    -6.1398,
+    -17.782
+   ],
+   "mierka": [
+    5.4877,
+    9.1281
+   ],
+   "uhol": 156,
+   "nazov": "dvojica: jas stred − okraj a jas (10. percentil) (priamka pod uhlom 156°)",
+   "uroven": "dvojica čŕt",
+   "podmienka": "<=",
+   "prah": -0.4019,
+   "skore": 0.9062,
+   "ano": {
+    "druh": "Rhodococcus"
+   },
+   "nie": {
+    "druh": "Aspergillus"
+   },
+   "zdovodnenie": "dvojica čŕt; medián Rhodococcus −0,51, najbližší druh Aspergillus 0,41; správne zaradených 91 % (priemer cez druhy); prekryv pixelov Rhodococcus–Aspergillus 0,30"
+  }
+ ],
+ "uspesnost": {
+  "test_fotky": 0.6465,
+  "train_fotky": 0.8519,
+  "test_karticky": 0.7308,
+  "train_cv_fotky": 0.7356,
+  "train_cv_fotky_sd": 0.0185,
+  "train_cv_karticky": 0.7941
+ }
+}

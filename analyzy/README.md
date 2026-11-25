@@ -40,14 +40,14 @@ trénovacej množine, porovnaním s ručne obkreslenými maskami (krok 1.4):
 | profil | kanály | metódy | kandidátov | Dice train | Dice test |
 |---|---|---|---|---|---|
 | **Rýchly** (predvolený, aplikácia aj masky pre kľúč) | HSV_S, Lab_a, XYZ_X, YUV_U | Yen, ISODATA, Minimum | 24 | 0,843 | **0,832** |
-| **Kvalitný** | HSV_H, HSV_S, Lab_a, XYZ_X, YUV_U, YUV_V | Yen, Li, ISODATA, Minimum | 48 | 0,854 | – |
+| **Kvalitný** | HSV_H, HSV_S, Lab_a, XYZ_X, YUV_U, YUV_V | Yen, Li, ISODATA, Minimum | 48 | 0,854 | 0,840 |
 | sada 12 × 7 (referencia) | všetky okrem jasových | všetkých 7 | 168 | 0,853 | 0,830 |
 
 Počet kandidátov je kanály × metódy × 2 polarity. Sada 12 × 7 je plná sada 19 kanálov × 7 metód
 bez siedmich jasových kanálov, ktorých vylúčenie nezmení ani jednu masku. Dice je zhoda s ručnou
 maskou (0–1). Profil Rýchly je rovnako presný ako sada 12 × 7 so skóre s kontrastom a počíta
-7-krát menej kandidátov, preto ho používa aplikácia aj tvorba masiek pre určovací kľúč. Test
-profilu Kvalitný sa pre jeho súčasnú verziu nemeral.
+7-krát menej kandidátov, preto ho používa aplikácia aj tvorba masiek pre určovací kľúč. Profil
+Kvalitný je na teste o 0,008 lepší, rozdiel však nie je významný (p = 0,26) a je asi 2-krát pomalší.
 
 **Škvrny na strane dokumentu** (`dokumenty/`). Na strane je najtmavšia štruktúra text a škvŕn je
 viac, preto sa maska nedá hľadať priamo. Najprv sa odstráni text, odhadne sa farba papiera a tlače

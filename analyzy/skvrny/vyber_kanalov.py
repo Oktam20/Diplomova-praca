@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from skvrny.maska import JASOVE_KANALY, METODY, VSETKY_KANALY, kandidati
+from skvrny.maska import JASOVE_KANALY, METODY, PROFILY, VSETKY_KANALY, kandidati
 from skvrny.rozdelenie import nacitaj_rozdelenie
 from skvrny.subory import VYSLEDKY, nacitaj_masku, nacitaj_obrazok, najdi_fotku
 from skvrny.vyhodnotenie import porovnaj
@@ -46,10 +46,34 @@ def nacitaj_kandidatov(fotky, rucne, znova, vystup=VYSLEDKY):
     return tabulka
 
 
-def vybrane(tabulka, kanaly, metody):
-    povoleni = tabulka[tabulka.kanal.isin(kanaly) & tabulka.metoda.isin(metody)]
-    
+def vybrane(tabulka, kanaly, metody, smery=("pod", "nad")):
+    povoleni = tabulka[tabulka.kanal.isin(kanaly) & tabulka.metoda.isin(metody) & tabulka.smer.isin(smery)]
+
     return povoleni.loc[povoleni.groupby("fotka").skore.idxmax()]
+
+
+def rozbor(tabulka, vitazi):
+    """Výhry jasových kanálov, polarita a prínos každého prvku profilov (Dice bez neho)."""
+    metody = list(METODY)
+    farebne = [k for k in VSETKY_KANALY if k not in JASOVE_KANALY]
+    sada = vybrane(tabulka, farebne, metody)
+    print(f"jasové kanály vyhrali na {vitazi.kanal.isin(JASOVE_KANALY).sum()} fotkách, "
+          f"Dice 19 × 7 {vitazi.dice.mean():.4f}, 12 × 7 {sada.dice.mean():.4f}")
+    print("výhry metód:", vitazi.metoda.value_counts().to_dict())
+    print("výhry polarít:", vitazi.smer.value_counts().to_dict())
+    print("polarita podľa kanála (12 × 7):")
+    print(pd.crosstab(sada.kanal, sada.smer).to_string())
+    print(f"12 × 7 len pod prahom: Dice {vybrane(tabulka, farebne, metody, ('pod',)).dice.mean():.4f}")
+
+    for nazov, (kanaly, metody_profilu) in PROFILY.items():
+        dice = vybrane(tabulka, kanaly, metody_profilu).dice.mean()
+        len_pod = vybrane(tabulka, kanaly, metody_profilu, ("pod",)).dice.mean()
+        print(f"\n{nazov}: Dice {dice:.4f}, len pod prahom {len_pod:.4f}")
+        for prvok in kanaly + metody_profilu:
+            bez_kanalov = [k for k in kanaly if k != prvok]
+            bez_metod = [m for m in metody_profilu if m != prvok]
+            zmena = vybrane(tabulka, bez_kanalov, bez_metod).dice.mean() - dice
+            print(f"  bez {prvok}: {zmena:+.4f}")
 
 
 def vylucovanie(tabulka, kanaly, metody):
@@ -141,6 +165,8 @@ def main():
     print(f"Všetky kanály × metódy: priemerný Dice {vitazi.dice.mean():.3f}")
     print(vitazi.kanal.value_counts().to_string())
     graf_vyhry(vitazi, vystup / "vyhry_kanalov_a_metod.png")
+    rozbor(tabulka, vitazi)
+    print()
 
     bez_jasovych = [k for k in VSETKY_KANALY if k not in JASOVE_KANALY]
     kroky = vylucovanie(tabulka, bez_jasovych, list(METODY))
