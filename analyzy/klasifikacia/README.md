@@ -160,5 +160,11 @@ automatickej masky bez okrajovej zóny 0. Sila čŕt, výber otázok aj učenie 
 | `kluc.json` | kľúč, ktorý používa aplikácia (`--uloz`) |
 | `vyber_jadra.py` | výber jadra škvrny (podiel `JADRO` v `crty.py`), výstupy v `vysledky_jadra/` |
 | `pca_farieb.py` | PCA farieb pixelov škvrny a jej prínos pre určenie druhu, výstupy v `vysledky_pca/` |
+| `pca_analyza.py` | krok 1: PCA farieb pixelov po druhoch, hlavné osi, výstupy v `vysledky_pca_analyza/` |
+| `prekryv_druhov.py` | krok 2: matica prekryvu dvojíc druhov (±1 SD) a elipsy, výstupy v `vysledky_prekryv/` |
+| `radialny_profil.py` | krok 3: farba v 3 kruhoch od ťažiska (stred, medzikružie, okraj), výstupy v `vysledky_radialny/` |
+| `tvary_masky.py` | krok 4: plocha, obvod, kruhovitosť, excentricita, výstupy v `vysledky_tvary/` |
+| `porovnanie_dvojice.py` | krok 5: zrnitosť, entropia a gradient jasu, všetky druhy alebo `--druhy A B`, výstupy v `vysledky_dvojica/` |
+| `navrh_kluca.py` | krok 6: návrh manuálneho kľúča z čŕt krokov 1–5 (farba → radiálny profil → textúra a tvar), tabuľka `kluc.md`, `kluc.json` a overenie na teste (fotky aj kartičky), výstupy v `vysledky_navrh_kluca/`; `--jadro 0.45` meria farbu, profil a textúru v jadre škvrny, `--crty vylepsene` použije črty z `crty.py` (lokálny papier, zóny, percentily, LBP, Gabor) s entropiou a tvarom, `--dvojice` povolí dvojicu čŕt oddelenú priamkou, `--cv` pridá krížovú validáciu po kartičkách |
 | `vzhlad.py` | farby a štýl grafov analýz |
 | `grafy_analyz/` | grafy analýz, z ktorých vznikla štruktúra kľúča (zo starého backendu), s popisom v `grafy_analyz/README.md` |

@@ -1,9 +1,4 @@
 """Jednoduchá PCA farieb pixelov pre každý druh.
-
-Pre každý druh sa zoberú pixely vnútri masky všetkých jeho fotografií, ich farba v Lab voči papieru
-(dL, da, db) a z nich kovariančná matica. Jej vlastné vektory sú smery, v ktorých sa farby pixelov
-druhu líšia; hlavný vlastný vektor (najväčšie vlastné číslo) je smer, v ktorom sa líšia najviac.
-
     python -m klasifikacia.pca_analyza --fotky images/D2 --masky images/D2/masky
 """
 import argparse
@@ -17,7 +12,7 @@ import pandas as pd
 from skvrny.subory import nacitaj_masku, nacitaj_obrazok, udaje_z_nazvu, zoznam_fotiek
 
 VYSTUP = Path(__file__).parent / "vysledky_pca_analyza"
-PIXELOV_Z_FOTKY = 2000  # z každej fotografie rovnako veľa pixelov, aby veľké škvrny neprevážili
+PIXELOV_Z_FOTKY = 2000 
 OSI = ["dL", "da", "db"]
 
 
@@ -36,7 +31,6 @@ def pca(pixely):
     cisla, vektory = np.linalg.eigh(np.cov(pixely, rowvar=False))
     poradie = np.argsort(cisla)[::-1]
     cisla, vektory = cisla[poradie], vektory[:, poradie]
-    # vektor v aj -v je tá istá os; otočíme ho tak, aby smeroval od papiera k priemernej farbe škvrny
     vektory *= np.where(pixely.mean(axis=0) @ vektory < 0, -1, 1)
     return cisla, vektory
 
@@ -99,11 +93,53 @@ def main():
     VYSTUP.mkdir(exist_ok=True)
     tabulka.to_csv(VYSTUP / "vlastne_vektory.csv", index=False, encoding="utf-8")
     graf(tabulka, VYSTUP / "hlavne_osi.png")
+    grafy_po_druhoch(tabulka, pixely_druhu, VYSTUP / "po_druhoch")
     pd.set_option("display.width", 200)
     print(tabulka[["druh", "fotiek", "v1_dL", "v1_da", "v1_db", "podiel_lambda1", "sklon_od_jasu_deg"]]
           .round(3).to_string(index=False))
     print(f"\nUložené do {VYSTUP}")
 
+def grafy_po_druhoch(tabulka, pixely_druhu, priecinok):
+    """Pre každý druh samostatný graf: hlavná os v dvoch rezoch + rozptyl pixelov v rovine PC1–PC2."""
+    priecinok.mkdir(exist_ok=True)
+    for _, r in tabulka.iterrows():
+        pixely = np.concatenate(pixely_druhu[r.druh])
+        stred = np.array([r.priemer_dL, r.priemer_da, r.priemer_db])
+        v1 = np.array([r.v1_dL, r.v1_da, r.v1_db])
+        cisla, vektory = pca(pixely)
+        v2 = vektory[:, 1]
+        pc = (pixely - pixely.mean(axis=0)) @ np.column_stack([v1, v2])
+
+        fig, osi = plt.subplots(1, 3, figsize=(16, 5))
+
+        smer = v1 * 2 * np.sqrt(r.lambda1)
+        for ax, (x, y) in zip(osi[:2], [(2, 0), (1, 2)]):
+            ax.plot([stred[x] - smer[x], stred[x] + smer[x]],
+                    [stred[y] - smer[y], stred[y] + smer[y]],
+                    color="tab:red", lw=2)
+            ax.scatter(stred[x], stred[y], color="tab:red", s=40, zorder=3)
+            ax.set_xlabel(f"{OSI[x]} voči papieru")
+            ax.set_ylabel(f"{OSI[y]} voči papieru")
+            ax.axhline(0, color="#ccc", lw=0.8)
+            ax.axvline(0, color="#ccc", lw=0.8)
+        osi[0].set_title("žltosť × jas (hlavná os)")
+        osi[1].set_title("červenosť × žltosť (hlavná os)")
+
+        osi[2].scatter(pc[:, 0], pc[:, 1], s=3, alpha=0.25, color="tab:blue")
+        osi[2].axhline(0, color="#ccc", lw=0.8)
+        osi[2].axvline(0, color="#ccc", lw=0.8)
+        osi[2].set_xlabel(f"PC1 ({r.podiel_lambda1*100:.0f} % rozptylu)")
+        osi[2].set_ylabel("PC2")
+        osi[2].set_title("pixely v rovine PC1–PC2")
+
+        fig.suptitle(
+            f"{r.druh} — fotiek: {int(r.fotiek)}, pixelov: {int(r.pixelov)}, "
+            f"podiel λ1: {r.podiel_lambda1:.2f}, sklon od jasu: {r.sklon_od_jasu_deg:.1f}°"
+        )
+        fig.tight_layout()
+        bezpecny = "".join(c if c.isalnum() or c in "-_." else "_" for c in r.druh)
+        fig.savefig(priecinok / f"{bezpecny}.png", dpi=150)
+        plt.close(fig)
 
 if __name__ == "__main__":
     main()

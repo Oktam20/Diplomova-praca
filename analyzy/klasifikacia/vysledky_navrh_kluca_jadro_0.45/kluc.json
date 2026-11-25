@@ -1,0 +1,205 @@
+{
+ "nastavenia": {
+  "crty": "zakladne",
+  "jadro": 0.45,
+  "papier": "medián pixelov mimo masky",
+  "dvojice": false,
+  "istota": 0.9,
+  "min_istota": 0.75,
+  "max_strana": 1200,
+  "fotiek_train": 385
+ },
+ "crty": {
+  "dL": "jas dL",
+  "da": "červenosť da",
+  "db": "žltosť db",
+  "entropia": "entropia jasu",
+  "grad_db": "zmena žltosti okraj − stred"
+ },
+ "kroky": [
+  {
+   "krok": 1,
+   "crta": "dL",
+   "nazov": "jas dL",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -49.0518,
+   "skore": 0.9949,
+   "ano": {
+    "druh": "Cladosporium"
+   },
+   "nie": {
+    "krok": 2
+   },
+   "zdovodnenie": "farba; medián Cladosporium −51,10, najbližší druh Epicoccum −35,69; správne zaradených 99 % (priemer cez druhy); prekryv pixelov Cladosporium–Epicoccum 0,16"
+  },
+  {
+   "krok": 2,
+   "crta": "da",
+   "nazov": "červenosť da",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -0.5197,
+   "skore": 0.9867,
+   "ano": {
+    "druh": "Micrococcus"
+   },
+   "nie": {
+    "krok": 3
+   },
+   "zdovodnenie": "farba; medián Micrococcus −1,75, najbližší druh Exiguobacterium 0,86; správne zaradených 99 % (priemer cez druhy); prekryv pixelov Micrococcus–Exiguobacterium 0,01"
+  },
+  {
+   "krok": 3,
+   "crta": "db",
+   "nazov": "žltosť db",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 26.2127,
+   "skore": 0.975,
+   "ano": {
+    "krok": 4
+   },
+   "nie": {
+    "krok": 5
+   },
+   "zdovodnenie": "farba; medián Rhodococcus 17,01, najbližší druh Sphingomonas 29,94; správne zaradených 98 % (priemer cez druhy); prekryv pixelov Rhodococcus–Sphingomonas 0,07"
+  },
+  {
+   "krok": 4,
+   "crta": "dL",
+   "nazov": "jas dL",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -21.4622,
+   "skore": 0.9609,
+   "ano": {
+    "krok": 6
+   },
+   "nie": {
+    "krok": 7
+   },
+   "zdovodnenie": "farba; medián Alternaria −23,64, najbližší druh Penicilium −15,57; správne zaradených 96 % (priemer cez druhy); prekryv pixelov Alternaria–Penicilium 0,09"
+  },
+  {
+   "krok": 5,
+   "crta": "grad_db",
+   "nazov": "zmena žltosti okraj − stred",
+   "uroven": "radiálny profil",
+   "podmienka": "<=",
+   "prah": -6.8478,
+   "skore": 0.9583,
+   "ano": {
+    "druh": "Curtobacterium"
+   },
+   "nie": {
+    "druh": "Sphingomonas"
+   },
+   "zdovodnenie": "radiálny profil; medián Curtobacterium −8,28, najbližší druh Sphingomonas −3,59; správne zaradených 96 % (priemer cez druhy); prekryv pixelov Curtobacterium–Sphingomonas 0,33"
+  },
+  {
+   "krok": 6,
+   "crta": "entropia",
+   "nazov": "entropia jasu",
+   "uroven": "textúra a tvar",
+   "podmienka": "<=",
+   "prah": 4.5,
+   "skore": 0.9536,
+   "ano": {
+    "druh": "Alternaria"
+   },
+   "nie": {
+    "druh": "Epicoccum"
+   },
+   "zdovodnenie": "textúra a tvar; medián Alternaria 4,27, najbližší druh Epicoccum 4,72; správne zaradených 95 % (priemer cez druhy); prekryv pixelov Alternaria–Epicoccum 0,20"
+  },
+  {
+   "krok": 7,
+   "crta": "db",
+   "nazov": "žltosť db",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 17.3966,
+   "skore": 0.9132,
+   "ano": {
+    "krok": 8
+   },
+   "nie": {
+    "druh": "Rhodococcus"
+   },
+   "zdovodnenie": "farba; medián Aspergillus 14,43, najbližší druh Rhodococcus 17,01; správne zaradených 91 % (priemer cez druhy); prekryv pixelov Aspergillus–Rhodococcus 0,30"
+  },
+  {
+   "krok": 8,
+   "crta": "dL",
+   "nazov": "jas dL",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -11.1501,
+   "skore": 0.925,
+   "ano": {
+    "krok": 9
+   },
+   "nie": {
+    "krok": 10
+   },
+   "zdovodnenie": "farba; medián Aspergillus −15,17, najbližší druh Talaromyces −6,86; správne zaradených 92 % (priemer cez druhy); prekryv pixelov Aspergillus–Talaromyces 0,30"
+  },
+  {
+   "krok": 9,
+   "crta": "db",
+   "nazov": "žltosť db",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 7.9444,
+   "skore": 0.9271,
+   "ano": {
+    "druh": "Penicilium"
+   },
+   "nie": {
+    "druh": "Aspergillus"
+   },
+   "zdovodnenie": "farba; medián Penicilium 5,71, najbližší druh Aspergillus 14,43; správne zaradených 93 % (priemer cez druhy); prekryv pixelov Penicilium–Aspergillus 0,02"
+  },
+  {
+   "krok": 10,
+   "crta": "da",
+   "nazov": "červenosť da",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": 3.5928,
+   "skore": 0.9306,
+   "ano": {
+    "krok": 11
+   },
+   "nie": {
+    "druh": "Arthrobacter"
+   },
+   "zdovodnenie": "farba; medián Talaromyces 2,27, najbližší druh Arthrobacter 5,08; správne zaradených 93 % (priemer cez druhy); prekryv pixelov Talaromyces–Arthrobacter 0,00"
+  },
+  {
+   "krok": 11,
+   "crta": "dL",
+   "nazov": "jas dL",
+   "uroven": "farba",
+   "podmienka": "<=",
+   "prah": -5.2673,
+   "skore": 0.9792,
+   "ano": {
+    "druh": "Talaromyces"
+   },
+   "nie": {
+    "druh": "Exiguobacterium"
+   },
+   "zdovodnenie": "farba; medián Talaromyces −6,86, najbližší druh Exiguobacterium −2,11; správne zaradených 98 % (priemer cez druhy); prekryv pixelov Talaromyces–Exiguobacterium 0,20"
+  }
+ ],
+ "uspesnost": {
+  "test_fotky": 0.697,
+  "train_fotky": 0.8312,
+  "test_karticky": 0.7692,
+  "train_cv_fotky": 0.6956,
+  "train_cv_fotky_sd": 0.0196,
+  "train_cv_karticky": 0.7545
+ }
+}
