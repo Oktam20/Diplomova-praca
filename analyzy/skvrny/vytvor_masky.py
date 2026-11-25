@@ -1,7 +1,3 @@
-"""Vytvorí masky škvŕn pre všetky fotky v priečinku.
-
-    python -m skvrny.vytvor_masky <priečinok s fotkami> [--vystup <priečinok>] [--profil rychly|kvalitny]
-"""
 import argparse
 from pathlib import Path
 

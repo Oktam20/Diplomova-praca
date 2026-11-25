@@ -1,32 +1,35 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { nazovDruhu, type Skvrna } from '@/vypocty/kluc';
+import { useJazyk } from '@/jazyk';
+import type { Texty } from '@/preklady';
+import type { Skvrna } from '@/vypocty/vysledok-skenu';
 import { FARBY, MEDZERA } from '@/vzhlad';
 
 const FARBA_SKUPINY: Record<string, string> = { tmave: '#8a5a2b', svetle: '#e2b93b' };
 
-const LEGENDA: [string, string][] = [
-  ['#9ec5f4', 'zóna 0 (okraj)'],
-  ['#6da7ec', 'zóna 1'],
-  ['#3987e5', 'zóna 2'],
-  ['#184f95', 'zóna 3 (stred)'],
+const LEGENDA: [string, keyof Texty['skvrna']['legenda']][] = [
+  ['#9ec5f4', 'zona0'],
+  ['#6da7ec', 'zona1'],
+  ['#3987e5', 'zona2'],
+  ['#184f95', 'zona3'],
   ['#e8862a', 'lem'],
-  ['#808080', 'vynechané okolie'],
+  ['#808080', 'vynechane'],
 ];
 
 /** Výsledok jednej škvrny: určený druh alebo skupina, obrázok čŕt a cesta kľúčom. */
 export function KartaSkvrny({ skvrna }: { skvrna: Skvrna }) {
-  const { nazov, skupina, podskupina, druh, druhy, cesta } = skvrna.urcenie;
+  const { jazyk, t } = useJazyk();
+  const { nazov, skupina, podskupina, druh, druhy, cesta } = skvrna.urcenie[jazyk];
   return (
     <View style={styles.karta}>
       <View style={styles.hlavicka}>
         <View style={[styles.bodka, { backgroundColor: FARBA_SKUPINY[skupina ?? ''] ?? FARBY.tlmeny }]} />
         <View style={styles.nazvy}>
-          <Text style={styles.drobny}>{skvrna.nazov}</Text>
+          <Text style={styles.drobny}>{t.skvrna.nazov(skvrna.cislo)}</Text>
           {druh ? (
             <>
-              <Text style={styles.urcenyNadpis}>Určený druh</Text>
-              <Text style={styles.urcenyDruh}>{nazovDruhu(druh)}</Text>
+              <Text style={styles.urcenyNadpis}>{t.skvrna.urcenyDruh}</Text>
+              <Text style={styles.urcenyDruh}>{druh}</Text>
               <Text style={styles.drobny}>
                 {nazov}
                 {podskupina ? ` → ${podskupina}` : ''}
@@ -48,19 +51,19 @@ export function KartaSkvrny({ skvrna }: { skvrna: Skvrna }) {
             {LEGENDA.map(([farba, popis]) => (
               <View key={popis} style={styles.polozkaLegendy}>
                 <View style={[styles.stvorcek, { backgroundColor: farba }]} />
-                <Text style={styles.popisLegendy}>{popis}</Text>
+                <Text style={styles.popisLegendy}>{t.skvrna.legenda[popis]}</Text>
               </View>
             ))}
-            <Text style={styles.popisLegendy}>papier = bez farby, obrys škvrny červený</Text>
+            <Text style={styles.popisLegendy}>{t.skvrna.legendaPapier}</Text>
           </View>
         </View>
       )}
 
-      {skupina === 'neiste' && <Text style={styles.drobny}>Hodnota je blízko prahu – škvrna môže patriť do oboch skupín.</Text>}
+      {skupina === 'neiste' && <Text style={styles.drobny}>{t.skvrna.blizkoPrahu}</Text>}
 
       {cesta.length > 0 && (
         <View style={styles.zoznam}>
-          <Text style={styles.nadpisZoznamu}>Cesta kľúčom</Text>
+          <Text style={styles.nadpisZoznamu}>{t.skvrna.cestaKlucom}</Text>
           {cesta.map((krok, i) => (
             <View key={i}>
               <Text style={styles.otazka}>{krok.otazka}</Text>
@@ -74,10 +77,10 @@ export function KartaSkvrny({ skvrna }: { skvrna: Skvrna }) {
 
       {!druh && druhy.length > 0 && (
         <View style={styles.zoznam}>
-          <Text style={styles.nadpisZoznamu}>Druh zatiaľ neurčený – možné druhy</Text>
+          <Text style={styles.nadpisZoznamu}>{t.skvrna.mozneDruhy}</Text>
           {druhy.map((d) => (
             <Text key={d} style={styles.mozny}>
-              {nazovDruhu(d)}
+              {d}
             </Text>
           ))}
         </View>

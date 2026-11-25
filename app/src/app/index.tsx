@@ -5,12 +5,14 @@ import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useJazyk } from '@/jazyk';
 import { Ikona } from '@/komponenty/ikona';
 import { Prepinac } from '@/komponenty/prepinac';
+import { PrepinacJazyka } from '@/komponenty/prepinac-jazyka';
 import { orezNaVodidlo, Vodidlo } from '@/komponenty/vodidlo';
+import type { Texty } from '@/preklady';
 import { prevezmiNovySken, ulozVysledok } from '@/vypocty/vysledok-skenu';
-import { pythonPripraveny } from '@/vypocty/webview';
-import { najdiNaDokumente, najdiNaObrazku, urciDruh, type Detekcia } from '@/vypocty/zariadenie';
+import { najdiNaDokumente, najdiNaObrazku, urciDruh, type Detekcia, type SpravaDetekcie } from '@/vypocty/zariadenie';
 import { FARBY, MEDZERA } from '@/vzhlad';
 
 type Rezim = 'obrazok' | 'dokument';
@@ -18,7 +20,30 @@ type Zdroj = 'kamera' | 'subor';
 type Pohlad = 'maska' | 'original' | 'vyrez';
 type Stav = 'nic' | 'pocita' | 'hotovo' | 'urcuje' | 'varovanie' | 'chyba';
 
+/** Správa pod fotkou – text sa vyberie podľa jazyka až pri zobrazení (okrem textu chyby z výpočtu). */
+type Sprava =
+  | SpravaDetekcie
+  | { druh: 'bezGalerie' | 'maskaSaNevytvorila' | 'spracovanieZlyhalo' | 'klasifikaciaZlyhala' }
+  | { druh: 'text'; text: string };
+
+function textSpravy(t: Texty, s: Sprava): string {
+  switch (s.druh) {
+    case 'text':
+      return s.text;
+    case 'casDokumentu':
+      return t.spravy.casDokumentu(s.spracovanych, s.okien);
+    case 'casObrazka':
+      return t.spravy.casObrazka(s.sekund);
+    default:
+      return t.spravy[s.druh];
+  }
+}
+
+const zChyby = (chyba: unknown, inak: 'spracovanieZlyhalo' | 'klasifikaciaZlyhala'): Sprava =>
+  chyba instanceof Error ? { druh: 'text', text: chyba.message } : { druh: inak };
+
 export default function Skenovanie() {
+  const { t } = useJazyk();
   const [zdroj, setZdroj] = useState<Zdroj>('kamera');
   const [rezim, setRezim] = useState<Rezim>('obrazok');
   const [povolenie, poziadajOPovolenie] = useCameraPermissions();
@@ -28,7 +53,7 @@ export default function Skenovanie() {
   const [fotka, setFotka] = useState<string | null>(null);
   const [detekcia, setDetekcia] = useState<Detekcia | null>(null);
   const [stav, setStav] = useState<Stav>('nic');
-  const [sprava, setSprava] = useState<string | null>(null);
+  const [sprava, setSprava] = useState<Sprava | null>(null);
   const [pohlad, setPohlad] = useState<Pohlad>('maska');
 
   const maMasku = (stav === 'hotovo' || stav === 'urcuje') && !!detekcia?.obrazokUri;
@@ -63,25 +88,25 @@ export default function Skenovanie() {
     try {
       const d = rezim === 'dokument' ? await najdiNaDokumente(uri) : await najdiNaObrazku(uri);
       setDetekcia(d);
-      setSprava(d.podklad !== null ? d.sprava : (d.sprava ?? 'Maska sa nevytvorila.'));
-      setStav(d.podklad === null || (d.sprava && rezim === 'obrazok') ? 'varovanie' : 'hotovo');
+      setSprava(d.podklad ? d.sprava : (d.sprava ?? { druh: 'maskaSaNevytvorila' }));
+      setStav(!d.podklad || (d.sprava && rezim === 'obrazok') ? 'varovanie' : 'hotovo');
     } catch (chyba) {
-      setSprava(chyba instanceof Error ? chyba.message : 'Spracovanie v zariadení zlyhalo.');
+      setSprava(zChyby(chyba, 'spracovanieZlyhalo'));
       setStav('chyba');
     }
   }
 
   async function urci() {
-    if (detekcia?.podklad == null) return;
+    if (!detekcia?.podklad) return;
     setStav('urcuje');
     setSprava(null);
     await new Promise((resolve) => setTimeout(resolve, 50));
     try {
-      const skvrny = await urciDruh(detekcia.podklad);
-      ulozVysledok({ ...detekcia, rezim, skvrny });
+      const { skvrny, overenie } = await urciDruh(detekcia.podklad);
+      ulozVysledok({ ...detekcia, rezim, skvrny, overenieKluca: overenie });
       router.push('/vysledok');
     } catch (chyba) {
-      setSprava(chyba instanceof Error ? chyba.message : 'Klasifikácia zlyhala.');
+      setSprava(zChyby(chyba, 'klasifikaciaZlyhala'));
     }
     setStav('hotovo');
   }
@@ -100,7 +125,7 @@ export default function Skenovanie() {
 
   async function vyberZGalerie() {
     if (!(await ImagePicker.requestMediaLibraryPermissionsAsync()).granted) {
-      setSprava('Bez povolenia do galérie nie je možné vybrať obrázok.');
+      setSprava({ druh: 'bezGalerie' });
       setStav('chyba');
       return;
     }
@@ -112,8 +137,8 @@ export default function Skenovanie() {
     <Prepinac
       naFotke
       moznosti={[
-        ['obrazok', 'Obrázok'],
-        ['dokument', 'Dokument'],
+        ['obrazok', t.rezimy.obrazok],
+        ['dokument', t.rezimy.dokument],
       ]}
       hodnota={rezim}
       zmena={setRezim}
@@ -127,14 +152,17 @@ export default function Skenovanie() {
           {zobrazena ? (
             <View style={styles.ram}>
               <Image source={{ uri: zobrazena }} style={styles.fotka} resizeMode="contain" />
-              <HornaLista nadpis={stav === 'pocita' ? 'Spracúva sa' : maMasku ? 'Skontroluj masku' : 'Skús to znova'} zavriet={zacniZnova} />
+              <HornaLista
+                nadpis={stav === 'pocita' ? t.skenovanie.nadpisSpracuva : maMasku ? t.skenovanie.nadpisSkontroluj : t.skenovanie.nadpisZnova}
+                zavriet={zacniZnova}
+              />
               {maMasku && (
                 <Prepinac
                   naFotke
                   moznosti={[
-                    ['maska', 'Maska'],
-                    ['original', 'Originál'],
-                    ['vyrez', 'Výrez'],
+                    ['maska', t.pohlady.maska],
+                    ['original', t.pohlady.original],
+                    ['vyrez', t.pohlady.vyrez],
                   ]}
                   hodnota={pohlad}
                   zmena={setPohlad}
@@ -143,8 +171,7 @@ export default function Skenovanie() {
               {(stav === 'pocita' || stav === 'urcuje') && (
                 <View style={[StyleSheet.absoluteFill, styles.pocitanie]}>
                   <ActivityIndicator color={FARBY.biela} size="large" />
-                  <Text style={styles.textPocitania}>{stav === 'urcuje' ? 'Klasifikuje sa…' : 'Spracúva sa…'}</Text>
-                  {!pythonPripraveny() && <Text style={styles.textVyzvy}>Načítava sa Python – prvé spustenie môže trvať aj minútu.</Text>}
+                  <Text style={styles.textPocitania}>{stav === 'urcuje' ? t.skenovanie.klasifikujeSa : t.skenovanie.spracuvaSa}</Text>
                 </View>
               )}
             </View>
@@ -152,9 +179,9 @@ export default function Skenovanie() {
             <View style={styles.ram}>
               <View style={[StyleSheet.absoluteFill, styles.vyzva]}>
                 <Ikona ios="square.and.arrow.up" android="upload_file" velkost={32} />
-                <Text style={styles.textVyzvy}>Nahraj fotku vzorky zo súboru.</Text>
+                <Text style={styles.textVyzvy}>{t.skenovanie.nahrajZoSuboru}</Text>
               </View>
-              <HornaLista nadpis="Nahraj obrázok" zavriet={() => zmenZdroj('kamera')} />
+              <HornaLista nadpis={t.skenovanie.nadpisNahraj} zavriet={() => zmenZdroj('kamera')} />
               {prepinacRezimu}
             </View>
           ) : povolenie?.granted ? (
@@ -164,17 +191,22 @@ export default function Skenovanie() {
                 ramKamery.current = e.nativeEvent.layout;
               }}>
               <CameraView ref={kamera} style={StyleSheet.absoluteFill} facing="back" />
-              <HornaLista nadpis="Zarovnaj vzorku na stred" zavriet={zacniZnova} />
+              <HornaLista nadpis={t.skenovanie.nadpisZarovnaj} zavriet={zacniZnova} />
               {prepinacRezimu}
               <Vodidlo />
             </View>
           ) : (
-            <View style={[styles.ram, styles.vyzva]}>
-              <Ikona ios="camera.fill" android="photo_camera" velkost={32} />
-              <Text style={styles.textVyzvy}>Potrebujeme prístup ku kamere.</Text>
-              <Pressable onPress={poziadajOPovolenie} style={styles.tlacidloVyzvy}>
-                <Text style={styles.popisVyzvy}>Povoliť kameru</Text>
-              </Pressable>
+            <View style={styles.ram}>
+              <View style={[StyleSheet.absoluteFill, styles.vyzva]}>
+                <Ikona ios="camera.fill" android="photo_camera" velkost={32} />
+                <Text style={styles.textVyzvy}>{t.skenovanie.potrebujemeKameru}</Text>
+                <Pressable onPress={poziadajOPovolenie} style={styles.tlacidloVyzvy}>
+                  <Text style={styles.popisVyzvy}>{t.skenovanie.povolitKameru}</Text>
+                </Pressable>
+              </View>
+              <View style={styles.jazykVRohu}>
+                <PrepinacJazyka />
+              </View>
             </View>
           )}
         </View>
@@ -186,33 +218,29 @@ export default function Skenovanie() {
             ) : (
               <Ikona ios="exclamationmark.triangle.fill" android="warning" farba={FARBY.jantarova} />
             )}
-            <Text style={styles.textSpravy}>{sprava}</Text>
+            <Text style={styles.textSpravy}>{textSpravy(t, sprava)}</Text>
           </View>
         )}
 
         {maMasku ? (
           <Pressable onPress={urci} disabled={stav === 'urcuje'} style={({ pressed }) => [styles.urcit, pressed && styles.stlacene]}>
             <Ikona ios="list.bullet.rectangle" android="fact_check" velkost={18} />
-            <Text style={styles.popisUrcit}>Klasifikovať</Text>
+            <Text style={styles.popisUrcit}>{t.skenovanie.klasifikovat}</Text>
           </Pressable>
         ) : (
           <View style={styles.tip}>
             <View style={styles.ikonaTipu}>
               <Ikona ios="lightbulb.fill" android="lightbulb" farba={FARBY.jantarova} />
             </View>
-            <Text style={styles.textTipu}>
-              {rezim === 'dokument'
-                ? 'Odfoť celú stránku – text sa odstráni a škvrny sa nájdu samy.'
-                : 'Obrázok s plesňou by mal byť v strede a celý viditeľný.'}
-            </Text>
+            <Text style={styles.textTipu}>{rezim === 'dokument' ? t.skenovanie.tipDokument : t.skenovanie.tipObrazok}</Text>
           </View>
         )}
 
         <View style={styles.okraje}>
           <Prepinac
             moznosti={[
-              ['kamera', 'Skenovanie'],
-              ['subor', 'Nahraj súbor'],
+              ['kamera', t.skenovanie.zdrojKamera],
+              ['subor', t.skenovanie.zdrojSubor],
             ]}
             hodnota={zdroj}
             zmena={zmenZdroj}
@@ -223,7 +251,7 @@ export default function Skenovanie() {
           {zobrazena ? (
             <Pressable onPress={zacniZnova} style={({ pressed }) => [styles.velkeTlacidlo, styles.biele, pressed && styles.stlacene]}>
               <Ikona ios="arrow.clockwise" android="refresh" farba={FARBY.tmavomodra} velkost={18} />
-              <Text style={[styles.popisTlacidla, styles.tmavyPopis]}>Skenovať znova</Text>
+              <Text style={[styles.popisTlacidla, styles.tmavyPopis]}>{t.skenovanie.skenovatZnova}</Text>
             </Pressable>
           ) : zdroj === 'kamera' ? (
             <>
@@ -238,7 +266,7 @@ export default function Skenovanie() {
           ) : (
             <Pressable onPress={vyberZGalerie} style={({ pressed }) => [styles.velkeTlacidlo, styles.modre, pressed && styles.stlacene]}>
               <Ikona ios="square.and.arrow.up" android="upload_file" velkost={18} />
-              <Text style={styles.popisTlacidla}>Nahrať súbor</Text>
+              <Text style={styles.popisTlacidla}>{t.skenovanie.nahratSubor}</Text>
             </Pressable>
           )}
         </View>
@@ -247,6 +275,7 @@ export default function Skenovanie() {
   );
 }
 
+/** Horná lišta nad fotkou: zavrieť, nadpis a prepínač jazyka. */
 function HornaLista({ nadpis, zavriet }: { nadpis: string; zavriet: () => void }) {
   return (
     <View style={styles.horna}>
@@ -256,7 +285,7 @@ function HornaLista({ nadpis, zavriet }: { nadpis: string; zavriet: () => void }
       <Text style={styles.nadpis} numberOfLines={1}>
         {nadpis}
       </Text>
-      <View style={styles.medzera} />
+      <PrepinacJazyka />
     </View>
   );
 }
@@ -283,7 +312,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
   zavriet: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.15)' },
-  medzera: { width: 30 },
+  jazykVRohu: { position: 'absolute', top: MEDZERA[2], right: MEDZERA[3] },
   nadpis: { flex: 1, color: FARBY.biela, fontSize: 13, fontWeight: '600', textAlign: 'center', marginHorizontal: MEDZERA[2] },
   pocitanie: { backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', gap: MEDZERA[2] },
   textPocitania: { color: FARBY.biela, fontSize: 14, fontWeight: '600' },

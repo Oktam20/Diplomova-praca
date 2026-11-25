@@ -34,4 +34,12 @@ TP (škvrna v oboch maskách), FP (len v automatickej), FN (len v ručnej):
 Ak má automatická maska iný rozmer, zmení sa na rozmer ručnej. Prázdna maska má všetky
 metriky 0.
 
-`suhrn.csv` obsahuje priemer metrík, medián Dice a podiel fotiek s IoU ≥ 0,5.
+`suhrn.csv` obsahuje priemer metrík, medián Dice a podiel fotografií s IoU ≥ 0,5 zvlášť pre
+trénovaciu množinu, testovaciu množinu a všetky fotografie.
+
+## Výsledok (profil Rýchly)
+
+| | fotografií | Dice | IoU | presnosť | citlivosť | IoU ≥ 0,5 |
+|---|---|---|---|---|---|---|
+| train | 385 | 0,843 | 0,749 | 0,911 | 0,815 | 94,3 % |
+| test | 99 | 0,832 | 0,737 | 0,909 | 0,810 | 92,9 % |

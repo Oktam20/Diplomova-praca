@@ -1,8 +1,3 @@
-"""Odstránenie textu, odhad farby papiera a mapa tlače (ilustrácie a plná tlač) na fotke strany.
-
-Morfológia ide cez skvrny.morfologia a blackhat sa počíta na 8-bitovom jase – rovnaké
-spracovanie ako v aplikácii (app/python), výsledok je rovnaký ako s cv2.morphologyEx.
-"""
 import cv2
 import numpy as np
 

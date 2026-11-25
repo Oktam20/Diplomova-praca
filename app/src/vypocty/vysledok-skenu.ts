@@ -1,5 +1,7 @@
 import type { Skvrna } from './kluc';
 
+export type { KrokCesty, Skvrna, Urcenie } from './kluc';
+
 /** Výsledok skenu, ktorý si obrazovka Výsledok prevezme od obrazovky skenovania. */
 export type VysledokSkenu = {
   rezim: 'obrazok' | 'dokument';
@@ -7,6 +9,7 @@ export type VysledokSkenu = {
   maskaUri: string | null;
   vyrezUri: string | null;
   skvrny: Skvrna[];
+  overenieKluca: number;
   profil: string | null;
   trvanie: number;
 };

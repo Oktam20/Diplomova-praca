@@ -1,4 +1,4 @@
-# Rozdelenie na train / test – `rozdelenie.py`
+# Rozdelenie na trénovaciu a testovaciu množinu – `rozdelenie.py`
 
 ## Použitie
 
@@ -21,6 +21,6 @@ Ostatné skripty rozdelenie čítajú funkciou `nacitaj_rozdelenie()`.
 - **Pevný seed 2026** – rozdelenie sa dá zopakovať.
 
 `rozdelenie.csv`: `fotka, vzorka, druh, cast` (cast = `train` / `test`).
-V práci: train 101 kartičiek / 385 fotiek, test 26 kartičiek / 99 fotiek.
+V práci: trénovacia množina 101 kartičiek / 385 fotografií, testovacia 26 kartičiek / 99 fotografií.
 
-Na testovacích fotkách sa nič neladí – ani algoritmus masky, ani výber kanálov.
+Na testovacej množine sa nič neladí – ani algoritmus masky a profily, ani prahy určovacieho kľúča.

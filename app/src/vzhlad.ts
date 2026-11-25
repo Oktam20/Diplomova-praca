@@ -1,4 +1,3 @@
-/** Farby tmavých obrazoviek skenovania a výsledku. */
 export const FARBY = {
   pozadie: '#0A0E1A',
   panel: '#141A2E',

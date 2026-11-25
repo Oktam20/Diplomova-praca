@@ -1,7 +1,3 @@
-"""Ktoré farebné kanály a metódy prahovania sú potrebné (len trénovacie fotky).
-
-    python -m skvrny.vyber_kanalov --fotky <priečinok> --rucne <priečinok> [--znova]
-"""
 import argparse
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path

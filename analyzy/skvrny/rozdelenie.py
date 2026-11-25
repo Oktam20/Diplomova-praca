@@ -1,7 +1,3 @@
-"""Rozdelenie fotiek na trénovaciu (80 %) a testovaciu (20 %) časť.
-
-    python -m skvrny.rozdelenie <priečinok s fotkami> [--znova]
-"""
 import argparse
 from pathlib import Path
 

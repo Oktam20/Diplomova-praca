@@ -1,7 +1,3 @@
-"""Testovacie strany s textom a vloženými škvrnami.
-
-    python -m dokumenty.generuj_strany --fotky images/D2 --masky images/D2masks
-"""
 import argparse
 import csv
 from pathlib import Path

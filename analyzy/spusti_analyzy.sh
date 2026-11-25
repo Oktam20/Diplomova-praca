@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# Celé spracovanie analýz krok po kroku. Každý beh má vlastný priečinok behy/<dátum_čas>/
-# so všetkými výstupmi a záznamom beh.log; staré výsledky sa neprepisujú.
-#
-#   ./spusti_analyzy.sh            všetky kroky
-#   ./spusti_analyzy.sh skvrny     len časť 1 (masky, rozdelenie, vyhodnotenie, výber kanálov)
-#   ./spusti_analyzy.sh dokumenty  len časť 2 (strany, hľadanie škvŕn, syntetický test)
 
 set -uo pipefail
 cd "$(dirname "$0")"
@@ -89,6 +83,16 @@ if [[ "$CAST" == "vsetko" || "$CAST" == "dokumenty" ]]; then
   krok "2.2 Hľadanie škvŕn na stranách" dokumenty.dokument "$BEH/testovacie_strany" --vystup "$BEH/dokumenty"
   krok "2.3 Syntetický test" dokumenty.test_dokumenty --fotky images/D2 --masky "$MASKY" \
     --strany "$BEH"/testovacie_strany/prazdne/*.png --vystup "$BEH/dokumenty_test"
+fi
+
+if [[ "$CAST" == "vsetko" || "$CAST" == "klasifikacia" ]]; then
+  [[ -d "$MASKY" ]] || MASKY="images/D2/masky"
+  krok "3.1 Určovací kľúč (train / test)" klasifikacia.postav_kluc --fotky images/D2 --masky "$MASKY" \
+    --vystup "$BEH/klasifikacia"
+  krok "3.2 PCA farieb pixelov škvrny" klasifikacia.pca_farieb --fotky images/D2 --masky "$MASKY" \
+    --rucne images/D2masks --vystup "$BEH/klasifikacia_pca"
+  krok "3.3 Výber jadra škvrny" klasifikacia.vyber_jadra --fotky images/D2 --masky "$MASKY" \
+    --rucne images/D2masks --vystup "$BEH/klasifikacia_jadro"
 fi
 
 zhrnutie

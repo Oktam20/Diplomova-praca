@@ -1,4 +1,3 @@
-"""Načítanie a ukladanie obrázkov (aj z ciest s diakritikou) a údaje z názvu fotky."""
 from pathlib import Path
 
 import cv2

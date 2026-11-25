@@ -1,7 +1,3 @@
-"""Porovnanie automatických masiek s ručne obkreslenými maskami.
-
-    python -m skvrny.vyhodnotenie --masky <priečinok> --rucne <priečinok> [--fotky <priečinok>]
-"""
 import argparse
 from pathlib import Path
 

@@ -1,7 +1,3 @@
-"""Syntetický test: skutočné škvrny vložené na strany dokumentov.
-
-    python -m dokumenty.test_dokumenty --strany <strany> --fotky <fotky škvŕn>
-"""
 import argparse
 from pathlib import Path
 
